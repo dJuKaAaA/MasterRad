@@ -1,0 +1,144 @@
+insert into participant_data_entity (
+    id,
+    payment_id,
+    order_id,
+    product_id,
+    amount
+) values (
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad40',
+             'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d60',
+             '03b229a1-0529-4a4a-a920-a7dda2637f70',
+             'd572df76-b527-4e31-8aa3-9aa954d17100',
+             2
+         );
+insert into coordinator_transaction_entity (
+    id,
+    state,
+    decision,
+    createdAt,
+    participant_data_id,
+    completed
+) values (
+             '70b92d63-4944-439c-9493-9e1fe47a1ee0',
+             'COMMITTED',
+             'COMMIT',
+             '2025-12-12T12:00:00Z',
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad40',
+             true
+         );
+
+insert into participant_data_entity (
+    id,
+    payment_id,
+    order_id,
+    product_id,
+    amount
+) values (
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad41',
+             'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d61',
+             '03b229a1-0529-4a4a-a920-a7dda2637f71',
+             'd572df76-b527-4e31-8aa3-9aa954d17101',
+             3
+         );
+insert into coordinator_transaction_entity (
+    id,
+    state,
+    decision,
+    createdAt,
+    participant_data_id,
+    completed
+) values (
+             '70b92d63-4944-439c-9493-9e1fe47a1ee1',
+             'COMMITTED',
+             'COMMIT',
+             '2025-10-13T14:03:00Z',
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad41',
+             true
+         );
+
+insert into participant_data_entity (
+    id,
+    payment_id,
+    order_id,
+    product_id,
+    amount
+) values (
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad42',
+             'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d62',
+             '03b229a1-0529-4a4a-a920-a7dda2637f72',
+             'd572df76-b527-4e31-8aa3-9aa954d17102',
+             5
+         );
+insert into coordinator_transaction_entity (
+    id,
+    state,
+    decision,
+    createdAt,
+    participant_data_id,
+    completed
+) values (
+             '70b92d63-4944-439c-9493-9e1fe47a1ee2',
+             'COMMITTED',
+             'COMMIT',
+             '2025-11-20T20:30:00Z',
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad42',
+             true
+         );
+
+insert into participant_data_entity (
+    id,
+    payment_id,
+    order_id,
+    product_id,
+    amount
+) values (
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad43',
+             'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d63',
+             '03b229a1-0529-4a4a-a920-a7dda2637f73',
+             'd572df76-b527-4e31-8aa3-9aa954d17103',
+             4
+         );
+insert into coordinator_transaction_entity (
+    id,
+    state,
+    decision,
+    createdAt,
+    participant_data_id,
+    completed
+) values (
+             '70b92d63-4944-439c-9493-9e1fe47a1ee3',
+             'COMMITTED',
+             'COMMIT',
+             '2025-12-01T13:13:00Z',
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad43',
+             true
+         );
+
+insert into participant_data_entity (
+    id,
+    payment_id,
+    order_id,
+    product_id,
+    amount
+) values (
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad44',
+             'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d64',
+             '03b229a1-0529-4a4a-a920-a7dda2637f74',
+             'd572df76-b527-4e31-8aa3-9aa954d17104',
+             1
+         );
+insert into coordinator_transaction_entity (
+    id,
+    state,
+    decision,
+    createdAt,
+    participant_data_id,
+    completed
+) values (
+             '70b92d63-4944-439c-9493-9e1fe47a1ee4',
+             'COMMITTED',
+             'COMMIT',
+             '2025-11-17T20:34:00Z',
+             '3e3a31a4-a095-4123-8d13-0b6c9230ad44',
+             true
+         );

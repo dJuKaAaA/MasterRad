@@ -1,0 +1,11 @@
+package org.ftn.client.dto;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record InventoryResponseDto(UUID id,
+                                   ProductResponseDto product,
+                                   int availableStock,
+                                   LocalDateTime createdAt,
+                                   LocalDateTime lastUpdatedAt) {
+}

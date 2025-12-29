@@ -1,0 +1,2 @@
+? cache-iranje
+- istraziti sta cini mikroservisnu strukturu

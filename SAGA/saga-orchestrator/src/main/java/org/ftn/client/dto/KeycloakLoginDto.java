@@ -1,0 +1,8 @@
+package org.ftn.client.dto;
+
+public record KeycloakLoginDto(String username,
+                               String password,
+                               String clientId,
+                               String clientSecret,
+                               String grantType) {
+}

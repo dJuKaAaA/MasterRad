@@ -1,0 +1,19 @@
+currDir=pwd
+
+cd ./saga-orchestrator
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/saga-orchestrator-jvm .
+
+cd ../order-service
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/order-service-saga-jvm .
+
+cd ../inventory-service
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/inventory-service-saga-jvm .
+
+cd ../payment-service
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/payment-service-saga-jvm .
+
+cd $currDir

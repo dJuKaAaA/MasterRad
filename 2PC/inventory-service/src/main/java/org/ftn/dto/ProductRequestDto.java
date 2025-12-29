@@ -1,0 +1,21 @@
+package org.ftn.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+public record ProductRequestDto(
+        @Size(max = 200, message = "Max characters exceeded (200)")
+        @NotBlank(message = "Name omitted")
+        String name,
+        @Size(max = 500, message = "Max characters exceeded (200)")
+        @NotBlank(message = "Description omitted")
+        String description,
+        @Min(value = 1, message = "Price must be at least 1")
+        BigDecimal price,
+        UUID merchantId
+) {
+}
