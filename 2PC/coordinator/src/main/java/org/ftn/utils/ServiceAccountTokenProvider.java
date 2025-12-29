@@ -3,9 +3,9 @@ package org.ftn.utils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.ftn.client.KeycloakClient;
-import org.ftn.client.dto.KeycloakAuthResponse;
-import org.ftn.client.dto.KeycloakLoginDto;
+import org.ftn.client.IdentityProviderClient;
+import org.ftn.client.dto.LoginRequestDto;
+import org.ftn.client.dto.TokenResponseDto;
 import org.jboss.logging.Logger;
 
 import java.time.Instant;
@@ -15,23 +15,17 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ServiceAccountTokenProvider {
     private String accessToken;
     private Instant expiresAt;
-    private final KeycloakClient keycloakClient;
-    private final KeycloakLoginDto sagaOrchestratorLoginDto;
+    private final IdentityProviderClient identityProviderClient;
+    private final CoordinatorConfigMap coordinatorConfigMap;
 
     private final ReentrantLock refreshLock = new ReentrantLock();
     private static final Logger LOG = Logger.getLogger(ServiceAccountTokenProvider.class);
 
     @Inject
-    public ServiceAccountTokenProvider(@RestClient KeycloakClient keycloakClient,
+    public ServiceAccountTokenProvider(@RestClient IdentityProviderClient identityProviderClient,
                                        CoordinatorConfigMap coordinatorConfigMap) {
-        this.keycloakClient = keycloakClient;
-        this.sagaOrchestratorLoginDto = new KeycloakLoginDto(
-                coordinatorConfigMap.username(),
-                coordinatorConfigMap.password(),
-                coordinatorConfigMap.clientId(),
-                coordinatorConfigMap.clientSecret().orElse(""),
-                coordinatorConfigMap.grantType()
-        );
+        this.identityProviderClient = identityProviderClient;
+        this.coordinatorConfigMap = coordinatorConfigMap;
     }
 
     private boolean isTokenValid() {
@@ -61,16 +55,15 @@ public class ServiceAccountTokenProvider {
     private void refreshToken() {
         LOG.info("Refreshing service account access token");
 
-        KeycloakAuthResponse response = keycloakClient.authenticate(
-                sagaOrchestratorLoginDto.grantType(),
-                sagaOrchestratorLoginDto.clientId(),
-                sagaOrchestratorLoginDto.clientSecret(),
-                sagaOrchestratorLoginDto.username(),
-                sagaOrchestratorLoginDto.password()
+        TokenResponseDto response = identityProviderClient.login(
+                new LoginRequestDto(
+                        coordinatorConfigMap.username(),
+                        coordinatorConfigMap.password()
+                )
         );
 
-        String token = response.access_token();
-        Number expiresIn = response.expires_in();
+        String token = response.token();
+        Number expiresIn = response.expiresIn();
 
         // Subtract buffer to avoid edge expiry
         this.accessToken = token;

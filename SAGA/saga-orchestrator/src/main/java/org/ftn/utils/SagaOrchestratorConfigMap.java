@@ -8,7 +8,4 @@ import java.util.Optional;
 public interface SagaOrchestratorConfigMap {
     String username();
     String password();
-    String clientId();
-    Optional<String> clientSecret();
-    String grantType();
 }

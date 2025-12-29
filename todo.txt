@@ -1,2 +1,5 @@
 ? cache-iranje
 - istraziti sta cini mikroservisnu strukturu
+- ubaciti identity provider u coordinator service
+- implementirati user service za saga i coordinator
+- dodaj log u RestClientExceptionMapper

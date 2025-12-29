@@ -16,4 +16,8 @@ cd ../payment-service
 ./mvnw clean package
 docker build -f src/main/docker/Dockerfile.jvm -t quarkus/payment-service-saga-jvm .
 
+cd ../identity-provider
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/identity-provider-saga-jvm .
+
 cd $currDir

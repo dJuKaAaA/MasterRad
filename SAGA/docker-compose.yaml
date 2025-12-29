@@ -85,7 +85,7 @@ services:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://order-db:5432/saga_order
       QUARKUS_DATASOURCE_USERNAME: order
       QUARKUS_DATASOURCE_PASSWORD: order
-      QUARKUS_OIDC_TOKEN_ISSUER: http://localhost/realms/distributed-transactions
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
@@ -102,7 +102,7 @@ services:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://inventory-db:5432/saga_inventory
       QUARKUS_DATASOURCE_USERNAME: inventory
       QUARKUS_DATASOURCE_PASSWORD: inventory
-      QUARKUS_OIDC_TOKEN_ISSUER: http://localhost/realms/distributed-transactions
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
@@ -119,7 +119,7 @@ services:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://payment-db:5432/saga_payment
       QUARKUS_DATASOURCE_USERNAME: payment
       QUARKUS_DATASOURCE_PASSWORD: payment
-      QUARKUS_OIDC_TOKEN_ISSUER: http://localhost/realms/distributed-transactions
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
@@ -136,18 +136,16 @@ services:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://saga-orchestrator-db:5432/saga_orchestrator
       QUARKUS_DATASOURCE_USERNAME: orchestrator
       QUARKUS_DATASOURCE_PASSWORD: orchestrator
-      QUARKUS_OIDC_TOKEN_ISSUER: http://localhost/realms/distributed-transactions
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
       SAGA_ORCHESTRATOR_USERNAME: saga
       SAGA_ORCHESTRATOR_PASSWORD: saga
-      SAGA_ORCHESTRATOR_CLIENT_ID: web-store
-      SAGA_ORCHESTRATOR_GRANT_TYPE: password
       QUARKUS_REST_CLIENT_ORDER_CLIENT_URL: http://order-service:8080
       QUARKUS_REST_CLIENT_INVENTORY_CLIENT_URL: http://inventory-service:8080
       QUARKUS_REST_CLIENT_PAYMENT_CLIENT_URL: http://payment-service:8080
-      QUARKUS_REST_CLIENT_KEYCLOAK_CLIENT_URL: http://keycloak:9000
+      QUARKUS_REST_CLIENT_IDENTITY_PROVIDER_CLIENT_URL: http://identity-provider:8080
     ports:
       - "8080:8080"
     depends_on:
@@ -155,6 +153,26 @@ services:
       - inventory-service
       - payment-service
       - saga-orchestrator-db
+      - identity-provider
+      - keycloak
+
+  identity-provider:
+    image: quarkus/identity-provider-saga-jvm:latest
+    container_name: saga-identity-provider
+    environment:
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      MY_KEYCLOAK_CLIENT_ID: web-store
+      MY_KEYCLOAK_CLIENT_SECRET: ""
+      MY_KEYCLOAK_GRANT_TYPE: password
+      MY_KEYCLOAK_ADMIN_USERNAME: admin
+      MY_KEYCLOAK_ADMIN_PASSWORD: admin
+      QUARKUS_REST_CLIENT_KEYCLOAK_CLIENT_URL: http://keycloak:9000/realms/distributed-transactions
+    ports:
+      - "8084:8080"
+    depends_on:
       - keycloak
 
   nginx:
@@ -169,6 +187,7 @@ services:
       - inventory-service
       - saga-orchestrator
       - keycloak
+      - identity-provider
 
 volumes:
   keycloak-db-data:

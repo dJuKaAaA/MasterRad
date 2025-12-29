@@ -9,7 +9,6 @@ import jakarta.ws.rs.ServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.ftn.client.InventoryClient;
-import org.ftn.client.KeycloakClient;
 import org.ftn.client.OrderClient;
 import org.ftn.client.PaymentClient;
 import org.ftn.client.dto.*;
@@ -46,7 +45,6 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                                   @RestClient OrderClient orderClient,
                                   @RestClient InventoryClient inventoryClient,
                                   @RestClient PaymentClient paymentClient,
-                                  @RestClient KeycloakClient keycloakClient,
                                   ServiceAccountTokenProvider tokenProvider) {
         this.coordinatorTransactionRepository = coordinatorTransactionRepository;
         this.orderClient = orderClient;
