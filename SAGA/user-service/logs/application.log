@@ -1,0 +1,9 @@
+2025-12-30 13:50:01,103 WARN  [io.qu.config] (Quarkus Main Thread) The "quarkus.log.file.enable" config property is deprecated and should not be used anymore.
+2025-12-30 13:50:01,103 WARN  [io.qu.config] (Quarkus Main Thread) The "quarkus.log.console.enable" config property is deprecated and should not be used anymore.
+2025-12-30 13:50:01,182 INFO  [io.qu.oi.ru.de.ui.OidcDevUiRecorder] (Quarkus Main Thread) OIDC Dev Console: discovering the provider metadata at http://localhost:9000/realms/distributed-transactions/.well-known/openid-configuration
+2025-12-30 13:50:01,197 INFO  [io.quarkus] (Quarkus Main Thread) user-service 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.30.5) started in 1.967s. Listening on: http://localhost:8085
+2025-12-30 13:50:01,198 INFO  [io.quarkus] (Quarkus Main Thread) Profile dev activated. Live Coding activated.
+2025-12-30 13:50:01,198 INFO  [io.quarkus] (Quarkus Main Thread) Installed features: [cdi, compose, hibernate-validator, keycloak-authorization, oidc, rest, rest-jackson, resteasy-client, resteasy-client-jackson, resteasy-client-jaxb, security, smallrye-context-propagation, vertx]
+2025-12-30 13:50:01,199 INFO  [io.qu.de.de.RuntimeUpdatesProcessor] (vert.x-worker-thread-15) Live reload total time: 3.142s 
+2025-12-30 13:50:01,467 INFO  [or.ft.se.im.UserServiceImpl] (executor-thread-1) User created successfully with id: 5b9792f2-5365-41a4-9880-4163369e63a4
+2025-12-30 14:12:39,349 INFO  [io.quarkus] (Shutdown thread) user-service stopped in 0.105s

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.ftn.constant.Roles.ADMIN;
+import static org.ftn.constant.Roles.CUSTOMER;
 
 @Path("/wallet")
 public class WalletResource {
@@ -26,7 +27,7 @@ public class WalletResource {
     @Path("/create")
     @Produces(MediaType.APPLICATION_JSON)
     @ResponseStatus(201)
-    @RolesAllowed(ADMIN)
+    @RolesAllowed({CUSTOMER})
     public WalletResponseDto create(@Context SecurityContext context) {
         return walletService.createForUser(UUID.fromString(context.getUserPrincipal().getName()));
     }
@@ -34,7 +35,7 @@ public class WalletResource {
     @GET
     @Path("/mine")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed({ADMIN})
+    @RolesAllowed({CUSTOMER})
     public WalletResponseDto getForUser(@Context SecurityContext context) {
         return walletService.getForUser(UUID.fromString(context.getUserPrincipal().getName()));
     }
@@ -42,7 +43,7 @@ public class WalletResource {
     @PATCH
     @Path("/mine/increase-balance/{balance}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RolesAllowed({ADMIN})
+    @RolesAllowed({CUSTOMER})
     public WalletResponseDto increaseBalanceForUser(@PathParam("balance") BigDecimal balance,
                                                     @Context SecurityContext context) {
         return walletService.increaseBalanceForUser(UUID.fromString(context.getUserPrincipal().getName()), balance);
