@@ -10,6 +10,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import org.ftn.constant.OrderStatus;
 import org.ftn.dto.*;
+import org.ftn.resource.param.PaginationParam;
 import org.ftn.service.Order2PCService;
 import org.ftn.service.OrderService;
 import org.jboss.resteasy.reactive.ResponseStatus;
@@ -32,19 +33,17 @@ public class OrderResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<OrderResponseDto> getAll(@QueryParam("page") @Min(0) int page,
-                                                 @QueryParam("size") @Min(1) @Max(100) int size) {
-        return orderService.getAll(page, size);
+    public PageResponse<OrderResponseDto> getAll(@BeanParam PaginationParam paginationParam) {
+        return orderService.getAll(paginationParam.getPage(), paginationParam.getSize());
     }
 
     @GET
     @Path("/status/{status}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<OrderResponseDto> getAll(@QueryParam("page") @Min(0) int page,
-                                                 @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<OrderResponseDto> getAll(@BeanParam PaginationParam paginationParam,
                                                  @PathParam("status") OrderStatus status) {
-        return orderService.getAll(page, size, status);
+        return orderService.getAll(paginationParam.getPage(), paginationParam.getSize(), status);
     }
 
     @GET
@@ -78,19 +77,22 @@ public class OrderResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
     public PageResponse<OrderResponseDto> getAllByUserId(@PathParam("userId") UUID userId,
-                                                         @QueryParam("page") @Min(0) int page,
-                                                         @QueryParam("size") @Min(1) @Max(100) int size) {
-        return orderService.getAllByUserId(userId, page, size);
+                                                         @BeanParam PaginationParam paginationParam) {
+        return orderService.getAllByUserId(userId, paginationParam.getPage(), paginationParam.getSize()
+        );
     }
 
     @GET
     @Path("/mine")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({CUSTOMER})
-    public PageResponse<OrderResponseDto> getAllForCustomer(@QueryParam("page") @Min(0) int page,
-                                                            @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<OrderResponseDto> getAllForCustomer(@BeanParam PaginationParam paginationParam,
                                                             @Context SecurityContext context) {
-        return orderService.getAllByUserId(UUID.fromString(context.getUserPrincipal().getName()), page, size);
+        return orderService.getAllByUserId(
+                UUID.fromString(context.getUserPrincipal().getName()),
+                paginationParam.getPage(),
+                paginationParam.getSize()
+        );
     }
 
     @GET
@@ -98,9 +100,8 @@ public class OrderResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN, MERCHANT})
     public PageResponse<OrderResponseDto> getAllByProductId(@PathParam("productId") UUID productId,
-                                                            @QueryParam("page") @Min(0) int page,
-                                                            @QueryParam("size") @Min(1) @Max(100) int size) {
-        return orderService.getAllByProductId(productId, page, size);
+                                                            @BeanParam PaginationParam paginationParam) {
+        return orderService.getAllByProductId(productId, paginationParam.getPage(), paginationParam.getSize());
     }
 
     @POST

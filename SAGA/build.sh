@@ -20,4 +20,8 @@ cd ../identity-provider
 ./mvnw clean package
 docker build -f src/main/docker/Dockerfile.jvm -t quarkus/identity-provider-saga-jvm .
 
+cd ../user-service
+./mvnw clean package
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/user-service-saga-jvm .
+
 cd $currDir

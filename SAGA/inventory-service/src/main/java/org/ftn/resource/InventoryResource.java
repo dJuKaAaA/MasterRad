@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.ftn.dto.*;
+import org.ftn.resource.param.PaginationParam;
 import org.ftn.service.InventorySagaService;
 import org.ftn.service.InventoryService;
 import org.jboss.resteasy.reactive.ResponseStatus;
@@ -35,29 +36,30 @@ public class InventoryResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<InventoryResponseDto> getAll(@QueryParam("page") @Min(0) int page,
-                                                     @QueryParam("size") @Min(1) @Max(100) int size) {
-        return inventoryService.getAll(page, size);
+    public PageResponse<InventoryResponseDto> getAll(@BeanParam PaginationParam paginationParam) {
+        return inventoryService.getAll(paginationParam.getPage(), paginationParam.getSize());
     }
 
     @GET
     @Path("/mine")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({MERCHANT})
-    public PageResponse<InventoryResponseDto> getAllForMerchant(@QueryParam("page") @Min(0) int page,
-                                                                @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<InventoryResponseDto> getAllForMerchant(@BeanParam PaginationParam paginationParam,
                                                                 @Context SecurityContext context) {
-        return inventoryService.getAll(UUID.fromString(context.getUserPrincipal().getName()), page, size);
+        return inventoryService.getAll(
+                UUID.fromString(context.getUserPrincipal().getName()),
+                paginationParam.getPage(),
+                paginationParam.getSize()
+        );
     }
 
     @GET
     @Path("/merchant/{merchantId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<InventoryResponseDto> getAllForMerchant(@QueryParam("page") @Min(0) int page,
-                                                                @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<InventoryResponseDto> getAllForMerchant(@BeanParam PaginationParam paginationParam,
                                                                 @PathParam("merchantId") UUID merchantId) {
-        return inventoryService.getAll(merchantId, page, size);
+        return inventoryService.getAll(merchantId, paginationParam.getPage(), paginationParam.getSize());
     }
 
     @GET

@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.ftn.dto.PageResponse;
 import org.ftn.dto.PaymentRequestDto;
 import org.ftn.dto.PaymentResponseDto;
+import org.ftn.resource.param.PaginationParam;
 import org.ftn.service.PaymentSagaService;
 import org.ftn.service.PaymentService;
 import org.jboss.resteasy.reactive.ResponseStatus;
@@ -36,29 +37,30 @@ public class PaymentResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<PaymentResponseDto> getAll(@QueryParam("page") @Min(0) int page,
-                                                   @QueryParam("size") @Min(1) @Max(100) int size) {
-        return paymentService.getAll(page, size);
+    public PageResponse<PaymentResponseDto> getAll(@BeanParam PaginationParam paginationParam) {
+        return paymentService.getAll(paginationParam.getPage(), paginationParam.getSize());
     }
 
     @GET
     @Path("/mine")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({CUSTOMER})
-    public PageResponse<PaymentResponseDto> getAllForCustomer(@QueryParam("page") @Min(0) int page,
-                                                              @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<PaymentResponseDto> getAllForCustomer(@BeanParam PaginationParam paginationParam,
                                                               @Context SecurityContext context) {
-        return paymentService.getAll(UUID.fromString(context.getUserPrincipal().getName()), page, size);
+        return paymentService.getAll(
+                UUID.fromString(context.getUserPrincipal().getName()),
+                paginationParam.getPage(),
+                paginationParam.getSize()
+        );
     }
 
     @GET
     @Path("/user/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ADMIN})
-    public PageResponse<PaymentResponseDto> getAllForCustomer(@QueryParam("page") @Min(0) int page,
-                                                              @QueryParam("size") @Min(1) @Max(100) int size,
+    public PageResponse<PaymentResponseDto> getAllForCustomer(@BeanParam PaginationParam paginationParam,
                                                               @PathParam("userId") UUID userId) {
-        return paymentService.getAll(userId, page, size);
+        return paymentService.getAll(userId, paginationParam.getPage(), paginationParam.getSize());
     }
 
     @GET
