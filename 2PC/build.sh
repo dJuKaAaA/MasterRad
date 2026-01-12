@@ -25,3 +25,5 @@ cd ../user-service
 docker build -f src/main/docker/Dockerfile.jvm -t quarkus/user-service-2pc-jvm .
 
 cd $currDir
+
+read -p "Press Enter to continue..."
