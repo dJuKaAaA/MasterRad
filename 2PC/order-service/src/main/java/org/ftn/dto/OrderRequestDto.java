@@ -8,8 +8,9 @@ import java.util.UUID;
 public record OrderRequestDto(
         @NotNull(message = "Product id omitted")
         UUID productId,
+        @NotNull(message = "Quantity omitted")
         @Size(min = 1, message = "Quantity must be at least 1")
-        int quantity,
+        Integer quantity,
         @NotNull(message = "User id omitted")
         UUID userId
 ) {

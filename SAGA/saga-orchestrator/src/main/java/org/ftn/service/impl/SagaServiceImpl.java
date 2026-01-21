@@ -123,7 +123,11 @@ public class SagaServiceImpl implements SagaService {
 
     @Transactional
     @Override
-    public void createOrderTransaction(SagaEntity saga, CreateOrderRequestDto createOrderRequestDto, UUID userId) {
+    public void createOrderTransaction(UUID sagaId, UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId) {
+        Optional<SagaEntity> optionalSaga = sagaRepository.findByIdOptional(sagaId);
+        SagaEntity saga;
+        saga = optionalSaga.orElseGet(() -> start(idempotencyKey));
+
         OrderResponseDto orderResponseDto = null;
         InventoryResponseDto inventoryResponseDto = null;
         PaymentResponseDto paymentResponseDto = null;
@@ -187,15 +191,28 @@ public class SagaServiceImpl implements SagaService {
 
     @Override
     public SagaResponseDto createOrderTransactionAsync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId) {
-        SagaEntity saga = start(idempotencyKey);
+        SagaEntity newSaga = start(idempotencyKey);
         managedExecutor.runAsync(() -> {
             try {
-                createOrderTransaction(saga, createOrderRequestDto, userId);
+                LOG.infof("Started saga %s", newSaga.getId());
+                createOrderTransaction(newSaga.getId(), idempotencyKey, createOrderRequestDto, userId);
             } catch (Exception e) {
-                LOG.errorf(e, "Saga %s failed asynchronously", saga.getId());
+                LOG.errorf(e, "Saga %s failed asynchronously", newSaga.getId());
             }
         });
-        return sagaMapper.toDto(saga);
+        return sagaMapper.toDto(newSaga);
+    }
+
+    @Override
+    public SagaResponseDto createOrderTransactionSync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId) {
+        SagaEntity newSaga = start(idempotencyKey);
+        try {
+            LOG.infof("Started saga %s", newSaga.getId());
+            createOrderTransaction(newSaga.getId(), idempotencyKey, createOrderRequestDto, userId);
+        } catch (Exception e) {
+            LOG.errorf(e, "Saga %s failed asynchronously", newSaga.getId());
+        }
+        return sagaMapper.toDto(newSaga);
     }
 
     @Override

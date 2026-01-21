@@ -1,5 +1,6 @@
 package org.ftn.mapper.impl;
 
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.ftn.dto.OrderRequestDto;
 import org.ftn.dto.OrderResponseDto;

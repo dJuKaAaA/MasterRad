@@ -8,7 +8,8 @@ import org.ftn.entity.SagaEntity;
 import java.util.UUID;
 
 public interface SagaService {
-    void createOrderTransaction(SagaEntity saga, CreateOrderRequestDto createOrderRequestDto, UUID userId);
+    void createOrderTransaction(UUID sagaId, UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
     SagaResponseDto createOrderTransactionAsync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
+    SagaResponseDto createOrderTransactionSync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
     SagaState getState(UUID id);
 }

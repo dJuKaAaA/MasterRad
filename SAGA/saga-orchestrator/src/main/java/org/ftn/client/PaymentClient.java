@@ -14,14 +14,14 @@ import java.util.UUID;
 public interface PaymentClient {
 
     @POST
-    @Path("/api/payment/saga")
+    @Path("/saga")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
     PaymentResponseDto process(@Valid PaymentRequestDto body, @HeaderParam("token") String token);
 
     @PATCH
-    @Path("/api/payment/saga/{id}")
+    @Path("/saga/{id}")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
     void refund(@PathParam("id") UUID id, @HeaderParam("token") String token);
 }

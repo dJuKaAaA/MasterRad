@@ -14,12 +14,12 @@ import java.util.UUID;
 public interface InventoryClient {
 
     @PATCH
-    @Path("/api/inventory/saga/reserve/{productId}/{amount}")
+    @Path("/saga/reserve/{productId}/{amount}")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
     InventoryResponseDto reserve(@PathParam("productId") UUID productId, @PathParam("amount") int amount, @HeaderParam("token") String token);
 
     @PATCH
-    @Path("/api/inventory/saga/release/{productId}/{amount}")
+    @Path("/saga/release/{productId}/{amount}")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
     void release(@PathParam("productId") UUID productId, @PathParam("amount") int amount, @HeaderParam("token") String token);
 }

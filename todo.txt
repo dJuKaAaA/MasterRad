@@ -1,2 +1,4 @@
 ? cache-iranje
 - istraziti sta cini mikroservisnu strukturu
+- dodaj ExceptionMapper za ClientErrorException
+- testirati 2PC
