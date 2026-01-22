@@ -5,7 +5,7 @@ INSERT INTO wallet_entity (
 ) VALUES (
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
              '8cca7a29-5add-4197-ad56-48be327ea13c',
-             100000.0
+             10000.0
          );
 
 INSERT INTO payment_entity (

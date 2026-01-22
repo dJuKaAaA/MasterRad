@@ -159,7 +159,7 @@ public class SagaServiceImpl implements SagaService {
                     createOrderRequestDto.productId(),
                     createOrderRequestDto.amount()
             );
-            final UUID productId = inventoryResponseDto.id();
+            final UUID productId = inventoryResponseDto.product().id();
             rollbackActions.add(() -> inventoryClient.release(productId, createOrderRequestDto.amount(), tokenProvider.getAccessToken()));
             LOG.infof("Reserved product %s for saga %s", inventoryResponseDto.product().id(), saga.getId());
 
@@ -183,9 +183,6 @@ public class SagaServiceImpl implements SagaService {
             LOG.errorf("Transaction for saga %s failed! Rolling back...", saga.getId());
             rollback(saga, rollbackActions, e.getMessage(), e.getResponse().getStatus());
             LOG.infof("Successful rollback for saga %s", saga.getId());
-
-            throw new ClientErrorException(e.getMessage(), e.getResponse().getStatus());
-
         }
     }
 
@@ -213,6 +210,13 @@ public class SagaServiceImpl implements SagaService {
             LOG.errorf(e, "Saga %s failed asynchronously", newSaga.getId());
         }
         return sagaMapper.toDto(newSaga);
+    }
+
+    @Override
+    public SagaResponseDto getSaga(UUID id) {
+        return sagaMapper.toDto(sagaRepository
+                .findByIdOptional(id)
+                .orElseThrow(() -> new NotFoundException("Saga not found")));
     }
 
     @Override
@@ -300,7 +304,7 @@ public class SagaServiceImpl implements SagaService {
             if (!success) {
                 saga.setState(SagaState.COMPENSATION_FAILED);
                 saga.setLastUpdated(Instant.now());
-                saga.setFailureReason("Failed while rolling back");
+                saga.setFailureReason("Failed while rolling back: %s".formatted(errorMessage));
                 sagaRepository.persistAndFlush(saga);
                 return;
             }

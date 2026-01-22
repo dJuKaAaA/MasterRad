@@ -1,0 +1,6 @@
+2026-01-22 08:34:32,121 WARN  [io.qu.config] (Quarkus Main Thread) The "quarkus.log.file.enable" config property is deprecated and should not be used anymore.
+2026-01-22 08:34:32,122 WARN  [io.qu.config] (Quarkus Main Thread) The "quarkus.log.console.enable" config property is deprecated and should not be used anymore.
+2026-01-22 08:34:33,014 INFO  [io.qu.oi.ru.de.ui.OidcDevUiRecorder] (Quarkus Main Thread) OIDC Dev Console: discovering the provider metadata at http://localhost:9000/realms/distributed-transactions/.well-known/openid-configuration
+2026-01-22 08:34:33,091 INFO  [io.quarkus] (Quarkus Main Thread) user-service 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.30.5) started in 4.727s. Listening on: http://localhost:8085
+2026-01-22 08:34:33,092 INFO  [io.quarkus] (Quarkus Main Thread) Profile dev activated. Live Coding activated.
+2026-01-22 08:34:33,093 INFO  [io.quarkus] (Quarkus Main Thread) Installed features: [cdi, compose, hibernate-validator, keycloak-authorization, oidc, rest, rest-jackson, resteasy-client, resteasy-client-jackson, resteasy-client-jaxb, security, smallrye-context-propagation, vertx]

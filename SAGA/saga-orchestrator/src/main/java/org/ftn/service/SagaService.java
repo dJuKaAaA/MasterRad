@@ -11,5 +11,6 @@ public interface SagaService {
     void createOrderTransaction(UUID sagaId, UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
     SagaResponseDto createOrderTransactionAsync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
     SagaResponseDto createOrderTransactionSync(UUID idempotencyKey, CreateOrderRequestDto createOrderRequestDto, UUID userId);
+    SagaResponseDto getSaga(UUID id);
     SagaState getState(UUID id);
 }

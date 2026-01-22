@@ -20,6 +20,7 @@ import org.jboss.resteasy.reactive.ResponseStatus;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.ftn.constant.Roles.ADMIN;
 import static org.ftn.constant.Roles.CUSTOMER;
 
 @Path("/")
@@ -62,6 +63,14 @@ public class SagaResource {
     @Produces(MediaType.TEXT_PLAIN)
     public SagaState getState(@PathParam("id") UUID id) {
         return sagaService.getState(id);
+    }
+
+    @GET
+    @Path("/{id}")
+    @RolesAllowed({ADMIN})
+    @Produces(MediaType.APPLICATION_JSON)
+    public SagaResponseDto getSaga(@PathParam("id") UUID id) {
+        return sagaService.getSaga(id);
     }
 
     // TODO: Make a cancel order endpoint and functionality
