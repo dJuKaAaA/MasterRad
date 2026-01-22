@@ -15,7 +15,7 @@ insert into coordinator_transaction_entity (
     id,
     state,
     decision,
-    createdAt,
+    created_at,
     participant_data_id,
     completed
 ) values (
@@ -44,7 +44,7 @@ insert into coordinator_transaction_entity (
     id,
     state,
     decision,
-    createdAt,
+    created_at,
     participant_data_id,
     completed
 ) values (
@@ -73,7 +73,7 @@ insert into coordinator_transaction_entity (
     id,
     state,
     decision,
-    createdAt,
+    created_at,
     participant_data_id,
     completed
 ) values (
@@ -102,7 +102,7 @@ insert into coordinator_transaction_entity (
     id,
     state,
     decision,
-    createdAt,
+    created_at,
     participant_data_id,
     completed
 ) values (
@@ -131,7 +131,7 @@ insert into coordinator_transaction_entity (
     id,
     state,
     decision,
-    createdAt,
+    created_at,
     participant_data_id,
     completed
 ) values (

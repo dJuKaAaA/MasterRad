@@ -3,8 +3,6 @@ package org.ftn.resource;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +13,6 @@ import org.ftn.service.Inventory2PCService;
 import org.ftn.service.InventoryService;
 import org.jboss.resteasy.reactive.ResponseStatus;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.ftn.constant.Roles.*;
@@ -125,8 +122,8 @@ public class InventoryResource {
     @Path("/2pc/prepare/{productId}/{amount}/tx/{txId}")
     @RolesAllowed({COORDINATOR_2PC})
     public VoteResponse prepare(@PathParam("productId") UUID productId,
-                                                @PathParam("amount") int amount,
-                                                @PathParam("txId") UUID txId) {
+                                @PathParam("amount") int amount,
+                                @PathParam("txId") UUID txId) {
         return inventory2PCService.prepare(productId, amount, txId);
     }
 

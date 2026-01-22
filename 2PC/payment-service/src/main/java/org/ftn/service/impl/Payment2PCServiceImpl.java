@@ -2,6 +2,7 @@ package org.ftn.service.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ServerErrorException;
 import org.ftn.constant.PaymentStatus;
 import org.ftn.constant.Vote;
@@ -37,6 +38,7 @@ public class Payment2PCServiceImpl implements Payment2PCService {
         this.paymentWithLockMapper = paymentWithLockMapper;
     }
 
+    @Transactional
     @Override
     public VoteResponse prepare(PaymentWithLockRequestDto dto) {
         LOG.info("Creating payment");
@@ -65,6 +67,7 @@ public class Payment2PCServiceImpl implements Payment2PCService {
         return new VoteResponse(Vote.YES, paymentWithLockMapper.toDto(payment));
     }
 
+    @Transactional
     @Override
     public void commit(UUID id, UUID lockId) {
         LOG.infof("Committing payment %s", id);
@@ -87,6 +90,7 @@ public class Payment2PCServiceImpl implements Payment2PCService {
         paymentRepository.persist(payment);
     }
 
+    @Transactional
     @Override
     public void rollback(UUID id, UUID lockId) {
         Optional<PaymentEntity> optionalPayment = paymentRepository

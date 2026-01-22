@@ -10,6 +10,7 @@ import org.ftn.mapper.PaymentMapper;
 import org.ftn.mapper.PaymentWithLockMapper;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -22,6 +23,7 @@ public class PaymentWithLockMapperImpl implements PaymentWithLockMapper {
         entity.setProductId(dto.productId());
         entity.setProductQuantity(dto.productQuantity());
         entity.setStatus(PaymentStatus.PENDING);
+        entity.setPayedAt(Instant.now());
         entity.setTotalPrice(entity.getPrice().multiply(new BigDecimal(entity.getProductQuantity())));
         entity.setLockId(dto.txId());
         return entity;

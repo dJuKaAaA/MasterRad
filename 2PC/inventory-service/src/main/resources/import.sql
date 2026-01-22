@@ -172,3 +172,38 @@ INSERT INTO inventory_entity (
              false,
              null
          );
+
+INSERT INTO product_entity (
+    id,
+    name,
+    description,
+    price,
+    added_at,
+    status,
+    merchant_id
+) VALUES (
+             'd572df76-b527-4e31-8aa3-9aa954d17105',
+             'RAM 32gb',
+             '32gb of RAM',
+             999.99,
+             '2025-11-29T16:21:00Z',
+             'DISCONTINUED',
+             '055c925e-b2fc-49af-bcfc-07913e52c82f'
+         );
+INSERT INTO inventory_entity (
+    id,
+    product_id,
+    available_stock,
+    created_at,
+    last_updated_at,
+    locked,
+    lock_id
+) VALUES (
+             'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c15',
+             'd572df76-b527-4e31-8aa3-9aa954d17105',
+             25,
+             '2025-11-29T16:21:00Z',
+             '2025-11-29T16:21:00Z',
+             false,
+             null
+         );

@@ -5,5 +5,5 @@ import org.ftn.dto.CreateOrderRequestDto;
 import java.util.UUID;
 
 public interface CoordinatorService {
-void createTransaction(CreateOrderRequestDto createOrderRequestDto, UUID coordinatorId);
+    void createTransaction(CreateOrderRequestDto createOrderRequestDto, UUID coordinatorId);
 }

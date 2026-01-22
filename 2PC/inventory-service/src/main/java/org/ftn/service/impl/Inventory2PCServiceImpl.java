@@ -1,7 +1,9 @@
 package org.ftn.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ServerErrorException;
 import org.ftn.constant.ProductStatus;
 import org.ftn.constant.Vote;
@@ -31,6 +33,7 @@ public class Inventory2PCServiceImpl implements Inventory2PCService {
         this.inventoryWithLockMapper = inventoryWithLockMapper;
     }
 
+    @Transactional
     @Override
     public VoteResponse prepare(UUID productId, int amount, UUID txId) {
         LOG.infof("Reserving product %s", productId);
@@ -69,6 +72,7 @@ public class Inventory2PCServiceImpl implements Inventory2PCService {
         return new VoteResponse(Vote.YES, inventoryWithLockMapper.toDto(inventory));
     }
 
+    @Transactional
     @Override
     public void commit(UUID productId, int amount, UUID lockId) {
         LOG.infof("Committing reservation for product %s", productId);
@@ -91,6 +95,7 @@ public class Inventory2PCServiceImpl implements Inventory2PCService {
         inventoryRepository.persist(inventory);
     }
 
+    @Transactional
     @Override
     public void rollback(UUID productId, int amount, UUID lockId) {
         Optional<InventoryEntity> optionalInventory = inventoryRepository

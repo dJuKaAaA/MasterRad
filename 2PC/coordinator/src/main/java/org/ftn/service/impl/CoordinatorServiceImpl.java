@@ -17,11 +17,13 @@ import org.ftn.constant.Decision;
 import org.ftn.dto.CreateOrderRequestDto;
 import org.ftn.entity.CoordinatorTransactionEntity;
 import org.ftn.entity.ParticipantDataEntity;
+import org.ftn.exception.PrepareException;
 import org.ftn.repository.CoordinatorTransactionRepository;
 import org.ftn.service.CoordinatorService;
 import org.ftn.utils.CommitAction;
 import org.ftn.utils.RollbackAction;
 import org.ftn.utils.ServiceAccountTokenProvider;
+import org.ftn.utils.VoteResponseConverter;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
@@ -37,6 +39,7 @@ public class CoordinatorServiceImpl implements CoordinatorService {
     private final InventoryClient inventoryClient;
     private final PaymentClient paymentClient;
     private final ServiceAccountTokenProvider tokenProvider;
+    private final VoteResponseConverter voteResponseConverter;
 
     private static final Logger LOG = Logger.getLogger(CoordinatorServiceImpl.class);
 
@@ -45,12 +48,14 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                                   @RestClient OrderClient orderClient,
                                   @RestClient InventoryClient inventoryClient,
                                   @RestClient PaymentClient paymentClient,
-                                  ServiceAccountTokenProvider tokenProvider) {
+                                  ServiceAccountTokenProvider tokenProvider,
+                                  VoteResponseConverter voteResponseConverter) {
         this.coordinatorTransactionRepository = coordinatorTransactionRepository;
         this.orderClient = orderClient;
         this.inventoryClient = inventoryClient;
         this.paymentClient = paymentClient;
         this.tokenProvider = tokenProvider;
+        this.voteResponseConverter = voteResponseConverter;
     }
 
     @Transactional
@@ -142,40 +147,40 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                 rollbackActions,
                 commitActions
         );
-        OrderResponseDto orderResponseDto = VoteResponseDto.getOrderResponse(orderVoteResponse);
-        LOG.infof("Order %s prepared for transaction %s", orderResponseDto.id(), coordinatorTransactionEntity.getId());
+        OrderResponseDto orderResponseDto = voteResponseConverter.convert(orderVoteResponse, OrderResponseDto.class);
+        LOG.infof("Order prepared for transaction %s", coordinatorTransactionEntity.getId());
 
         VoteResponseDto inventoryVoteResponse = prepareInventory(
                 createOrderRequestDto,
                 coordinatorTransactionEntity.getId(),
                 rollbackActions,
                 commitActions);
-        InventoryResponseDto inventoryResponseDto = VoteResponseDto.getInventoryResponse(inventoryVoteResponse);
-        LOG.infof("Product %s prepared for transaction %s", inventoryResponseDto.product().id(), coordinatorTransactionEntity.getId());
+        InventoryResponseDto inventoryResponseDto = voteResponseConverter.convert(inventoryVoteResponse, InventoryResponseDto.class);
+        LOG.infof("Product prepared for transaction %s", coordinatorTransactionEntity.getId());
 
         VoteResponseDto paymentVoteResponse = preparePayment(
                 createOrderRequestDto,
                 coordinatorTransactionEntity.getId(),
-                inventoryResponseDto.product().price(),
+                inventoryResponseDto.product() != null ? inventoryResponseDto.product().price() : BigDecimal.ZERO,
                 userId,
                 rollbackActions,
                 commitActions);
-        PaymentResponseDto paymentResponseDto = VoteResponseDto.getPaymentResponse(paymentVoteResponse);
-        LOG.infof("Payment %s prepared for transaction %s", paymentResponseDto.id(), coordinatorTransactionEntity.getId());
+        PaymentResponseDto paymentResponseDto = voteResponseConverter.convert(paymentVoteResponse, PaymentResponseDto.class);
+        LOG.infof("Payment prepared for transaction %s", coordinatorTransactionEntity.getId());
 
         boolean readyToCommit = Stream.of(orderVoteResponse.vote(), inventoryVoteResponse.vote(), paymentVoteResponse.vote())
                 .allMatch(vote -> vote == Vote.YES);
 
-        // setting up data for recovery in case the coordinator crashes during committing or aborting
-        ParticipantDataEntity participantData = new ParticipantDataEntity(
-                null,
-                paymentResponseDto.id(),
-                orderResponseDto.id(),
-                inventoryResponseDto.product().id(),
-                createOrderRequestDto.amount()
-        );
-        coordinatorTransactionEntity.setParticipantData(participantData);
         if (readyToCommit) {
+            // setting up data for recovery in case the coordinator crashes during committing or aborting
+            ParticipantDataEntity participantData = new ParticipantDataEntity(
+                    null,
+                    paymentResponseDto.id(),
+                    orderResponseDto.id(),
+                    inventoryResponseDto.product().id(),
+                    createOrderRequestDto.amount()
+            );
+            coordinatorTransactionEntity.setParticipantData(participantData);
             coordinatorTransactionEntity.setState(CoordinatorTransactionState.COMMITTING);
             coordinatorTransactionEntity.setDecision(Decision.COMMIT);
             coordinatorTransactionRepository.persistAndFlush(coordinatorTransactionEntity);
@@ -228,13 +233,12 @@ public class CoordinatorServiceImpl implements CoordinatorService {
             coordinatorTransactionRepository.persistAndFlush(coordinatorTransactionEntity);
 
             LOG.infof("Transaction %s successful roll back", coordinatorTransactionEntity.getId());
-
             Stream.of(orderVoteResponse, inventoryVoteResponse, paymentVoteResponse)
-                    .filter(e -> e.body() instanceof ErrorResponseDto)
-                    .map(e -> (ErrorResponseDto) e.body())
+                    .map(e -> voteResponseConverter.convert(e, ErrorResponseDto.class))
+                    .filter(e -> e.status() != 0 && e.message() != null)
                     .findAny()
                     .ifPresent(e -> {
-                        throw new ClientErrorException(e.message(), e.status());
+                        throw new PrepareException(e.message(), e.status());
                     });
         }
     }
@@ -307,7 +311,7 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         if (response.vote() == Vote.NO)
             return response;
 
-        OrderResponseDto orderResponseDto = VoteResponseDto.getOrderResponse(response);
+        OrderResponseDto orderResponseDto = voteResponseConverter.convert(response, OrderResponseDto.class);
         if (orderResponseDto == null) {
             LOG.errorf("Could not convert VoteResponseDto to OrderResponseDto");
             throw new ServerErrorException("Internal server error", 500);
@@ -347,7 +351,7 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         if (response.vote() == Vote.NO)
             return response;
 
-        InventoryResponseDto inventoryResponseDto = VoteResponseDto.getInventoryResponse(response);
+        InventoryResponseDto inventoryResponseDto = voteResponseConverter.convert(response, InventoryResponseDto.class);
         if (inventoryResponseDto == null) {
             LOG.errorf("Could not convert VoteResponseDto to InventoryResponseDto");
             throw new ServerErrorException("Internal server error", 500);
@@ -396,7 +400,7 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         if (response.vote() == Vote.NO)
             return response;
 
-        PaymentResponseDto paymentResponseDto = VoteResponseDto.getPaymentResponse(response);
+        PaymentResponseDto paymentResponseDto = voteResponseConverter.convert(response, PaymentResponseDto.class);
         if (paymentResponseDto == null) {
             LOG.errorf("Could not convert VoteResponseDto to PaymentResponseDto");
             throw new ServerErrorException("Internal server error", 500);

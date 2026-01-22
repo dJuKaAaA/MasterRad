@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PaymentWithLockRequestDto(
-        @Min(value = 1, message = "Price cannot be negative")
+        @Min(value = 0, message = "Price cannot be negative")
         BigDecimal price,
         @NotNull(message = "Product id omitted")
         UUID productId,

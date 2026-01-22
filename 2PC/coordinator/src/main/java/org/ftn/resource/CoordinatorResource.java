@@ -9,6 +9,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.ftn.dto.CreateOrderRequestDto;
 import org.ftn.service.CoordinatorService;
 import org.jboss.resteasy.reactive.ResponseStatus;
@@ -18,12 +19,15 @@ import java.util.UUID;
 import static org.ftn.constant.Roles.CUSTOMER;
 
 @Path("/")
-public class SpringCoordinatorResource {
+public class CoordinatorResource {
     private final CoordinatorService coordinatorService;
+    private final JsonWebToken jwt;
 
     @Inject
-    public SpringCoordinatorResource(CoordinatorService coordinatorService) {
+    public CoordinatorResource(CoordinatorService coordinatorService,
+                               JsonWebToken jwt) {
         this.coordinatorService = coordinatorService;
+        this.jwt = jwt;
     }
 
     @POST
@@ -31,9 +35,8 @@ public class SpringCoordinatorResource {
     @ResponseStatus(201)
     @RolesAllowed({CUSTOMER})
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createOrder(@Valid CreateOrderRequestDto body,
-                            @Context SecurityContext context) {
-        coordinatorService.createTransaction(body, UUID.fromString(context.getUserPrincipal().getName()));
+    public void createOrder(@Valid CreateOrderRequestDto body) {
+        coordinatorService.createTransaction(body, UUID.fromString(jwt.getSubject()));
     }
 
     // TODO: Make a cancel order endpoint and functionality

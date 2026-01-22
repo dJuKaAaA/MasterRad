@@ -1,7 +1,10 @@
 package org.ftn.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ServerErrorException;
 import org.ftn.constant.OrderStatus;
 import org.ftn.constant.Vote;
@@ -31,6 +34,7 @@ public class Order2PCServiceImpl implements Order2PCService {
         this.orderWithLockMapper = orderWithLockMapper;
     }
 
+    @Transactional
     @Override
     public VoteResponse prepare(OrderWithLockRequestDto dto) {
         LOG.info("Creating order");
@@ -43,6 +47,7 @@ public class Order2PCServiceImpl implements Order2PCService {
         return new VoteResponse(Vote.YES, orderWithLockMapper.toDto(order));
     }
 
+    @Transactional
     @Override
     public void commit(UUID id, UUID lockId) {
         LOG.infof("Committing order %s", id);
@@ -60,6 +65,7 @@ public class Order2PCServiceImpl implements Order2PCService {
         orderRepository.persist(order);
     }
 
+    @Transactional
     @Override
     public void rollback(UUID id, UUID lockId) {
         Optional<OrderEntity> optionalOrder = orderRepository

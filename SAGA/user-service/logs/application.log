@@ -4,3 +4,5 @@
 2026-01-22 08:34:33,091 INFO  [io.quarkus] (Quarkus Main Thread) user-service 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.30.5) started in 4.727s. Listening on: http://localhost:8085
 2026-01-22 08:34:33,092 INFO  [io.quarkus] (Quarkus Main Thread) Profile dev activated. Live Coding activated.
 2026-01-22 08:34:33,093 INFO  [io.quarkus] (Quarkus Main Thread) Installed features: [cdi, compose, hibernate-validator, keycloak-authorization, oidc, rest, rest-jackson, resteasy-client, resteasy-client-jackson, resteasy-client-jaxb, security, smallrye-context-propagation, vertx]
+2026-01-22 10:05:21,377 WARNING [or.ae.re.te.im.AbstractWindowsTerminal] (Shutdown thread) Failed to write out.
+2026-01-22 10:05:21,368 INFO  [io.quarkus] (Shutdown thread) user-service stopped in 0.111s
