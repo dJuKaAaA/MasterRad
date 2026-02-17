@@ -1,11 +1,16 @@
 package org.ftn.service.impl;
 
 import io.quarkus.runtime.Startup;
+import io.smallrye.reactive.messaging.kafka.api.IncomingKafkaRecordMetadata;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import org.eclipse.microprofile.context.ManagedExecutor;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Message;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.ftn.client.InventoryClient;
 import org.ftn.client.OrderClient;
@@ -15,6 +20,7 @@ import org.ftn.constant.SagaState;
 import org.ftn.constant.TransactionState;
 import org.ftn.dto.CreateOrderRequestDto;
 import org.ftn.dto.SagaResponseDto;
+import org.ftn.dto.kafka.*;
 import org.ftn.entity.RecoveryDataEntity;
 import org.ftn.entity.SagaEntity;
 import org.ftn.mapper.SagaMapper;
@@ -25,8 +31,10 @@ import org.ftn.utils.ServiceAccountTokenProvider;
 import org.jboss.logging.Logger;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class SagaServiceImpl implements SagaService {
@@ -37,6 +45,12 @@ public class SagaServiceImpl implements SagaService {
     private final PaymentClient paymentClient;
     private final ServiceAccountTokenProvider tokenProvider;
     private final ManagedExecutor managedExecutor;
+    private final Emitter<KafkaOrderRequestDto> orderCommitEmitter;
+    private final Emitter<KafkaInventoryRequestDto> inventoryCommitEmitter;
+    private final Emitter<KafkaPaymentRequestDto> paymentCommitEmitter;
+    private final Emitter<KafkaOrderErrorDto> orderRollbackEmitter;
+    private final Emitter<KafkaInventoryErrorDto> inventoryRollbackEmitter;
+    private final Emitter<KafkaPaymentErrorDto> paymentRollbackEmitter;
 
     private static final Logger LOG = Logger.getLogger(SagaServiceImpl.class);
 
@@ -47,7 +61,13 @@ public class SagaServiceImpl implements SagaService {
                            @RestClient InventoryClient inventoryClient,
                            @RestClient PaymentClient paymentClient,
                            ServiceAccountTokenProvider tokenProvider,
-                           ManagedExecutor managedExecutor) {
+                           ManagedExecutor managedExecutor,
+                           @Channel("order-service-commit") Emitter<KafkaOrderRequestDto> orderCommitEmitter,
+                           @Channel("inventory-service-commit") Emitter<KafkaInventoryRequestDto> inventoryCommitEmitter,
+                           @Channel("payment-service-commit") Emitter<KafkaPaymentRequestDto> paymentCommitEmitter,
+                           @Channel("order-service-rollback") Emitter<KafkaOrderErrorDto> orderRollbackEmitter,
+                           @Channel("inventory-service-rollback") Emitter<KafkaInventoryErrorDto> inventoryRollbackEmitter,
+                           @Channel("payment-service-rollback") Emitter<KafkaPaymentErrorDto> paymentRollbackEmitter) {
         this.sagaRepository = sagaRepository;
         this.sagaMapper = sagaMapper;
         this.orderClient = orderClient;
@@ -55,6 +75,12 @@ public class SagaServiceImpl implements SagaService {
         this.paymentClient = paymentClient;
         this.tokenProvider = tokenProvider;
         this.managedExecutor = managedExecutor;
+        this.orderCommitEmitter = orderCommitEmitter;
+        this.inventoryCommitEmitter = inventoryCommitEmitter;
+        this.paymentCommitEmitter = paymentCommitEmitter;
+        this.orderRollbackEmitter = orderRollbackEmitter;
+        this.inventoryRollbackEmitter = inventoryRollbackEmitter;
+        this.paymentRollbackEmitter = paymentRollbackEmitter;
     }
 
     @Startup
@@ -128,9 +154,9 @@ public class SagaServiceImpl implements SagaService {
         SagaEntity saga;
         saga = optionalSaga.orElseGet(() -> start(idempotencyKey));
 
-        OrderResponseDto orderResponseDto = null;
-        InventoryResponseDto inventoryResponseDto = null;
-        PaymentResponseDto paymentResponseDto = null;
+        OrderResponseDto orderResponseDto;
+        InventoryResponseDto inventoryResponseDto;
+        PaymentResponseDto paymentResponseDto;
         LOG.infof("Starting saga %s", saga.getId());
 
         LinkedList<RollbackAction> rollbackActions = new LinkedList<>();
@@ -231,6 +257,7 @@ public class SagaServiceImpl implements SagaService {
         return saga.getState();
     }
 
+
     @Transactional
     public SagaEntity start(UUID idempotencyKey) {
         if (idempotencyKey == null) {
@@ -256,6 +283,16 @@ public class SagaServiceImpl implements SagaService {
                 idempotencyKey);
         sagaRepository.persistAndFlush(saga);
         return saga;
+    }
+
+    private UUID getSagaIdMetadataHeader(Message<?> msg) {
+        IncomingKafkaRecordMetadata<?, ?> metadata = msg.getMetadata(IncomingKafkaRecordMetadata.class)
+                .orElseThrow(() -> new IllegalStateException("Kafka metadata not found"));
+        var header = metadata.getHeaders().lastHeader("sagaId");
+        if (header == null) {
+            throw new RuntimeException("Kafka header not found");
+        }
+        return UUID.fromString(new String(header.value(), StandardCharsets.UTF_8));
     }
 
     private OrderResponseDto createOrder(SagaEntity saga, OrderRequestDto orderRequest) {

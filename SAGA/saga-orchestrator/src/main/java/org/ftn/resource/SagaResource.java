@@ -14,6 +14,7 @@ import org.ftn.constant.SagaState;
 import org.ftn.dto.CreateOrderRequestDto;
 import org.ftn.dto.SagaResponseDto;
 import org.ftn.entity.SagaEntity;
+import org.ftn.service.KafkaSagaService;
 import org.ftn.service.SagaService;
 import org.jboss.resteasy.reactive.ResponseStatus;
 
@@ -26,13 +27,27 @@ import static org.ftn.constant.Roles.CUSTOMER;
 @Path("/")
 public class SagaResource {
     private final SagaService sagaService;
+    private final KafkaSagaService kafkaSagaService;
     private final JsonWebToken jwt;
 
     @Inject
     public SagaResource(SagaService sagaService,
+                        KafkaSagaService kafkaSagaService,
                         JsonWebToken jwt) {
         this.sagaService = sagaService;
+        this.kafkaSagaService = kafkaSagaService;
         this.jwt = jwt;
+    }
+
+    @POST
+    @Path("/create-order-async")
+    @ResponseStatus(202)
+    @RolesAllowed({CUSTOMER})
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SagaResponseDto createOrder(@Valid CreateOrderRequestDto body,
+                                       @HeaderParam("Idempotency-Key") UUID idempotencyKey) {
+        return sagaService.createOrderTransactionAsync(idempotencyKey, body, UUID.fromString(jwt.getSubject()));
     }
 
     @POST
@@ -41,9 +56,9 @@ public class SagaResource {
     @RolesAllowed({CUSTOMER})
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SagaResponseDto createOrder(@Valid CreateOrderRequestDto body,
-                                       @HeaderParam("Idempotency-Key") UUID idempotencyKey) {
-        return sagaService.createOrderTransactionAsync(idempotencyKey, body, UUID.fromString(jwt.getSubject()));
+    public SagaResponseDto createOrderKafka(@Valid CreateOrderRequestDto body,
+                                            @HeaderParam("Idempotency-Key") UUID idempotencyKey) {
+        return kafkaSagaService.createOrderTransactionKafka(idempotencyKey, body, UUID.fromString(jwt.getSubject()));
     }
 
     @POST

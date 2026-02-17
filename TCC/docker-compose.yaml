@@ -1,0 +1,217 @@
+version: '3.8'
+
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.1
+    container_name: tcc-keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HTTP_PORT: 9000
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "9000:9000"
+    command: ["start-dev"]
+    depends_on:
+      - keycloak-db
+
+  keycloak-db:
+    image: postgres:15
+    container_name: tcc-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+
+  coordinator-db:
+    image: postgres:15
+    container_name: tcc-coordinator-db
+    environment:
+      POSTGRES_DB: coordinator
+      POSTGRES_USER: coordinator 
+      POSTGRES_PASSWORD: coordinator
+    ports:
+      - "5436:5432"
+    volumes:
+      - tcc-coordinator-db-data:/var/lib/postgresql/data
+
+  order-db:
+    image: postgres:15
+    container_name: tcc-order-db
+    environment:
+      POSTGRES_DB: tcc_order
+      POSTGRES_USER: order
+      POSTGRES_PASSWORD: order
+    ports:
+      - "5433:5432"
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+
+  inventory-db:
+    image: postgres:15
+    container_name: tcc-inventory-db
+    environment:
+      POSTGRES_DB: tcc_inventory
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory
+    ports:
+      - "5434:5432"
+    volumes:
+      - inventory-db-data:/var/lib/postgresql/data
+
+  payment-db:
+    image: postgres:15
+    container_name: tcc-payment-db
+    environment:
+      POSTGRES_DB: tcc_payment
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+    ports:
+      - "5435:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+
+  order-service:
+    image: quarkus/order-service-tcc-jvm:latest
+    container_name: tcc-order-service
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://order-db:5432/tcc_order
+      QUARKUS_DATASOURCE_USERNAME: order
+      QUARKUS_DATASOURCE_PASSWORD: order
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+    ports:
+      - "8081:8080"
+    depends_on:
+      - order-db
+      - keycloak
+
+  inventory-service:
+    image: quarkus/inventory-service-tcc-jvm:latest
+    container_name: tcc-inventory-service
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://inventory-db:5432/tcc_inventory
+      QUARKUS_DATASOURCE_USERNAME: inventory
+      QUARKUS_DATASOURCE_PASSWORD: inventory
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+    ports:
+      - "8082:8080"
+    depends_on:
+      - inventory-db
+      - keycloak
+
+  payment-service:
+    image: quarkus/payment-service-tcc-jvm:latest
+    container_name: tcc-payment-service
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://payment-db:5432/tcc_payment
+      QUARKUS_DATASOURCE_USERNAME: payment
+      QUARKUS_DATASOURCE_PASSWORD: payment
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+    ports:
+      - "8083:8080"
+    depends_on:
+      - payment-db
+      - keycloak
+
+  coordinator:
+    image: quarkus/coordinator-tcc-jvm:latest
+    container_name: coordinator
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://tcc-coordinator-db:5432/coordinator
+      QUARKUS_DATASOURCE_USERNAME: coordinator
+      QUARKUS_DATASOURCE_PASSWORD: coordinator
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      COORDINATOR_USERNAME: coordinator
+      COORDINATOR_PASSWORD: coordinator
+      QUARKUS_REST_CLIENT_ORDER_CLIENT_URL: http://order-service:8080
+      QUARKUS_REST_CLIENT_INVENTORY_CLIENT_URL: http://inventory-service:8080
+      QUARKUS_REST_CLIENT_PAYMENT_CLIENT_URL: http://payment-service:8080
+      QUARKUS_REST_CLIENT_IDENTITY_PROVIDER_CLIENT_URL: http://identity-provider:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - order-service
+      - inventory-service
+      - payment-service
+      - coordinator-db
+      - identity-provider
+      - keycloak
+
+  identity-provider:
+    image: quarkus/identity-provider-tcc-jvm:latest
+    container_name: tcc-identity-provider
+    environment:
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      MY_KEYCLOAK_CLIENT_ID: web-store
+      MY_KEYCLOAK_CLIENT_SECRET: ""
+      MY_KEYCLOAK_GRANT_TYPE: password
+      MY_KEYCLOAK_ADMIN_USERNAME: admin
+      MY_KEYCLOAK_ADMIN_PASSWORD: admin
+      QUARKUS_REST_CLIENT_KEYCLOAK_CLIENT_URL: http://keycloak:9000/realms/distributed-transactions
+    ports:
+      - "8084:8080"
+    depends_on:
+      - keycloak
+
+  user-service:
+    image: quarkus/user-service-tcc-jvm:latest
+    container_name: tcc-user-service
+    environment:
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      MY_KEYCLOAK_SERVER_URL: http://keycloak:9000
+      MY_KEYCLOAK_REALM: distributed-transactions
+      MY_KEYCLOAK_CLIENT_ID: web-store
+      MY_KEYCLOAK_CLIENT_SECRET: ""
+      MY_KEYCLOAK_GRANT_TYPE: password
+      MY_KEYCLOAK_ADMIN_USERNAME: admin
+      MY_KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8086:8080"
+    depends_on:
+      - keycloak
+
+  nginx:
+    image: nginx:alpine
+    container_name: tcc-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - order-service
+      - inventory-service
+      - coordinator
+      - keycloak
+      - identity-provider
+
+volumes:
+  keycloak-db-data:
+  tcc-coordinator-db-data:
+  order-db-data:
+  inventory-db-data:
+  payment-db-data:

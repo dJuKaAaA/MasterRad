@@ -1,24 +1,5 @@
-? cache-iranje
-- istraziti sta cini mikroservisnu strukturu
-
-Test SAGA:
-    - Happy flow +++
-    Order service:
-    Inventory service:
-        - Inventory not found +++
-        - Not enough products in stock (vise trazenih dobara nego sto ima u skladistu) +++
-        - Discontinued product +++
-    Payment service:
-        - User wallet not found (user koji nema novcanik) +++
-        - Insufficient money (nedovoljno para) +++
-
-Test 2PC:
-    - Happy flow +++
-    Order service:
-    Inventory service:
-        - Inventory not found +++
-        - Not enough products in stock (vise trazenih dobara nego sto ima u skladistu) +++
-        - Discontinued product +++
-    Payment service:
-        - User wallet not found (user koji nema novcanik) +++
-        - Insufficient money (nedovoljno para) +++
+- implementirani 2PC je u stvari TCC, preimenuj ga u TCC
+- implementirati 2PC uz pomoc quarkus-narayana-lra ekstenzije
+- ukloniti saga-orchestrator service i logiku za orkestraciju staviti u
+  order-service ???
+- poruke koje se nisu poslale, zezaju na Kafki

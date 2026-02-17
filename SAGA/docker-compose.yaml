@@ -89,11 +89,13 @@ services:
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka:9092
     ports:
       - "8081:8080"
     depends_on:
       - order-db
       - keycloak
+      - kafka
 
   inventory-service:
     image: quarkus/inventory-service-saga-jvm:latest
@@ -106,11 +108,13 @@ services:
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka:9092
     ports:
       - "8082:8080"
     depends_on:
       - inventory-db
       - keycloak
+      - kafka
 
   payment-service:
     image: quarkus/payment-service-saga-jvm:latest
@@ -123,11 +127,13 @@ services:
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store
       QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka:9092
     ports:
       - "8083:8080"
     depends_on:
       - payment-db
       - keycloak
+      - kafka
 
   saga-orchestrator:
     image: quarkus/saga-orchestrator-jvm:latest
@@ -146,6 +152,7 @@ services:
       QUARKUS_REST_CLIENT_INVENTORY_CLIENT_URL: http://inventory-service:8080
       QUARKUS_REST_CLIENT_PAYMENT_CLIENT_URL: http://payment-service:8080
       QUARKUS_REST_CLIENT_IDENTITY_PROVIDER_CLIENT_URL: http://identity-provider:8080
+      KAFKA_BOOTSTRAP_SERVERS: http://kafka:9092
     ports:
       - "8080:8080"
     depends_on:
@@ -155,6 +162,7 @@ services:
       - saga-orchestrator-db
       - identity-provider
       - keycloak
+      - kafka
 
   identity-provider:
     image: quarkus/identity-provider-saga-jvm:latest
@@ -175,6 +183,26 @@ services:
     depends_on:
       - keycloak
 
+  user-service:
+    image: quarkus/user-service-saga-jvm:latest
+    container_name: tcc-user-service
+    environment:
+      QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
+      QUARKUS_OIDC_CLIENT_ID: web-store
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ""
+      MY_KEYCLOAK_SERVER_URL: http://keycloak:9000
+      MY_KEYCLOAK_REALM: distributed-transactions
+      MY_KEYCLOAK_CLIENT_ID: web-store
+      MY_KEYCLOAK_CLIENT_SECRET: ""
+      MY_KEYCLOAK_GRANT_TYPE: password
+      MY_KEYCLOAK_ADMIN_USERNAME: admin
+      MY_KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8085:8080"
+    depends_on:
+      - keycloak
+
   nginx:
     image: nginx:alpine
     container_name: saga-nginx
@@ -188,6 +216,40 @@ services:
       - saga-orchestrator
       - keycloak
       - identity-provider
+
+  kafka:
+    image: confluentinc/cp-kafka:7.8.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft Specific Settings
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      # Cluster ID is required for KRaft; you can use any base64 string
+      CLUSTER_ID: '6_p1u8X_R_m8uL2g3u1A_Q'
+      # Developer-friendly settings
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      - kafka
 
 volumes:
   keycloak-db-data:

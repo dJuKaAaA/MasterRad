@@ -4,9 +4,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Message;
 import org.ftn.constant.ProductStatus;
-import org.ftn.dto.InventoryResponseDto;
+import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.mapper.InventoryMapper;
 import org.ftn.repository.InventoryRepository;
@@ -16,19 +21,26 @@ import org.jboss.logging.Logger;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 
 @ApplicationScoped
 public class InventorySagaServiceImpl implements InventorySagaService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
+    private final Emitter<KafkaInventoryResponseDto> responseEmitter;
+    private final Emitter<KafkaInventoryErrorDto> errorEmitter;
 
     private static final Logger LOG = Logger.getLogger(InventorySagaServiceImpl.class);
 
     @Inject
     public InventorySagaServiceImpl(InventoryRepository inventoryRepository,
-                                    InventoryMapper inventoryMapper) {
+                                    InventoryMapper inventoryMapper,
+                                    @Channel("inventory-service-response") Emitter<KafkaInventoryResponseDto> responseEmitter,
+                                    @Channel("inventory-service-error") Emitter<KafkaInventoryErrorDto> errorEmitter) {
         this.inventoryRepository = inventoryRepository;
         this.inventoryMapper = inventoryMapper;
+        this.responseEmitter = responseEmitter;
+        this.errorEmitter = errorEmitter;
     }
 
     @Transactional
@@ -77,5 +89,45 @@ public class InventorySagaServiceImpl implements InventorySagaService {
             inventoryRepository.persist(inventory);
             LOG.infof("Successfully released product %s", productId);
         }
+    }
+
+    @Transactional
+    @Incoming("inventory-service-commit")
+    public CompletionStage<Void> reserve(Message<KafkaInventoryRequestDto> msg) {
+        UUID productId = msg.getPayload().productReserveRequestDto().productId();
+        int quantity = msg.getPayload().productReserveRequestDto().quantity();
+        try {
+            InventoryResponseDto inventoryResponseDto = reserve(productId, quantity);
+            KafkaInventoryResponseDto payload = new KafkaInventoryResponseDto(
+                    msg.getPayload().userId(),
+                    msg.getPayload().sagaId(),
+                    msg.getPayload().orderId(),
+                    quantity,
+                    inventoryResponseDto,
+                    null
+            );
+            responseEmitter.send(Message.of(payload));
+        } catch (ClientErrorException e) {
+            KafkaInventoryResponseDto payload = new KafkaInventoryResponseDto(
+                    msg.getPayload().userId(),
+                    msg.getPayload().sagaId(),
+                    msg.getPayload().orderId(),
+                    quantity,
+                    null,
+                    new KafkaErrorDto(e.getMessage(), e.getResponse().getStatus())
+            );
+            responseEmitter.send(Message.of(payload));
+        }
+        return msg.ack();
+    }
+
+    @Transactional
+    @Incoming("inventory-service-rollback")
+    public CompletionStage<Void> release(Message<KafkaInventoryErrorDto> msg) {
+        UUID productId = msg.getPayload().productId();
+        int quantity = msg.getPayload().amount();
+        release(productId, quantity);
+        errorEmitter.send(msg);
+        return msg.ack();
     }
 }
