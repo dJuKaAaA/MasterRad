@@ -3,7 +3,7 @@
 - Docker must be installed and running
 
 ## Steps
-1. Navigate to the SAGA or 2PC directory.
+1. Navigate to the SAGA, TCC or 2PC directory.
 2. Build the application:
   ``` bash
   ./build.sh
