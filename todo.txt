@@ -1,2 +1,0 @@
-- poruke koje se nisu poslale, zezaju na Kafki
-- implementiraj monolit 2PC
