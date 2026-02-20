@@ -14,8 +14,7 @@ public class InventoryEntity {
     private int availableStock;
     private Instant createdAt;
     private Instant lastUpdatedAt;
-    private boolean locked;
-    private UUID lockId;
+    private Integer reservedAmount;
 
     @Id
     @GeneratedValue
@@ -44,13 +43,9 @@ public class InventoryEntity {
         return lastUpdatedAt;
     }
 
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Column(name = "lock_id")
-    public UUID getLockId() {
-        return lockId;
+    @Column(name = "reserved_amount")
+    public Integer getReservedAmount() {
+        return reservedAmount;
     }
 
     public void setId(UUID id) {
@@ -74,27 +69,22 @@ public class InventoryEntity {
     }
 
     public void decreaseAvailableStock(int amount) {
-        this.availableStock -= amount;
+        this.availableStock -= Math.abs(amount);
     }
 
     public void increaseAvailableStock(int amount) {
-        this.availableStock += amount;
+        this.availableStock += Math.abs(amount);
     }
 
-    public void setLocked(boolean locked) {
-        this.locked = locked;
+    public void increaseReservedStock(int amount) {
+        this.reservedAmount += Math.abs(amount);
     }
 
-    public void setLockId(UUID lockId) {
-        this.lockId = lockId;
+    public void decreaseReservedStock(int amount) {
+        this.reservedAmount -= Math.abs(amount);
     }
 
-    public boolean tryUnlock(UUID lockId) {
-        if (lockId.equals(this.lockId)) {
-            this.locked = false;
-            this.lockId = null;
-            return true;
-        }
-        return false;
+    public void setReservedAmount(Integer reservedAmount) {
+        this.reservedAmount = reservedAmount;
     }
 }

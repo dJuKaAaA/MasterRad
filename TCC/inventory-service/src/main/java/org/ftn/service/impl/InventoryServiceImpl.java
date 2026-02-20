@@ -150,10 +150,6 @@ public class InventoryServiceImpl implements InventoryService {
                     Log.errorf("Inventory not found %s", id);
                     return new NotFoundException("Inventory not found");
                 });
-        if (inventory.isLocked()) {
-            Log.errorf("Inventory %s is currently locked", id);
-            throw new ClientErrorException("Inventory is currently locked", 409);
-        }
 
         inventoryRepository.delete(inventory);
         LOG.infof("Deleted inventory %s successfully", id);
@@ -170,10 +166,6 @@ public class InventoryServiceImpl implements InventoryService {
                     LOG.errorf("Product %s not found", productId);
                     return new NotFoundException("Product not found");
                 });
-        if (inventory.isLocked()) {
-            LOG.errorf("Inventory with the product %s is currently locked", productId);
-            throw new ClientErrorException("Inventory is currently locked", 409);
-        }
         if (inventory.getProduct().getStatus() == ProductStatus.DISCONTINUED) {
             LOG.errorf("Product %s is already discontinued", productId);
             throw new BadRequestException("Product is already discontinued");
@@ -200,10 +192,6 @@ public class InventoryServiceImpl implements InventoryService {
                     LOG.errorf("Inventory %s not found", id);
                     return new NotFoundException("Inventory not found");
                 });
-        if (inventory.isLocked()) {
-            LOG.errorf("Inventory %s is currently locked", id);
-            throw new ClientErrorException("Inventory is currently locked", 409);
-        }
 
         inventory.increaseAvailableStock(amount);
         inventoryRepository.persist(inventory);
@@ -222,10 +210,6 @@ public class InventoryServiceImpl implements InventoryService {
                     LOG.errorf("Product %s not found", productId);
                     return new NotFoundException("Product not found");
                 });
-        if (inventory.isLocked()) {
-            LOG.errorf("Inventory %s is currently locked", inventory.getId());
-            throw new ClientErrorException("Inventory is currently locked", 409);
-        }
 
         if (inventory.getProduct().getStatus() == ProductStatus.DISCONTINUED) {
             LOG.errorf("Failed to update product %s as it is discontinued", productId);

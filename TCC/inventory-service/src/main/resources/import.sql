@@ -21,16 +21,14 @@ INSERT INTO inventory_entity (
     available_stock,
     created_at,
     last_updated_at,
-    locked,
-    lock_id
+    reserved_amount
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c10',
              'd572df76-b527-4e31-8aa3-9aa954d17100',
              100,
              '2024-05-15T16:22:00Z',
              '2024-05-15T16:22:00Z',
-             false,
-             null
+             0
          );
 
 INSERT INTO product_entity (
@@ -56,16 +54,14 @@ INSERT INTO inventory_entity (
     available_stock,
     created_at,
     last_updated_at,
-    locked,
-    lock_id
+    reserved_amount
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c11',
              'd572df76-b527-4e31-8aa3-9aa954d17101',
              150,
              '2024-05-16T07:18:00Z',
              '2024-05-16T07:18:00Z',
-             false,
-             null
+             0
          );
 
 INSERT INTO product_entity (
@@ -91,16 +87,14 @@ INSERT INTO inventory_entity (
     available_stock,
     created_at,
     last_updated_at,
-    locked,
-    lock_id
+    reserved_amount
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c12',
              'd572df76-b527-4e31-8aa3-9aa954d17102',
              200,
              '2024-05-17T10:41:00Z',
              '2024-05-17T10:41:00Z',
-             false,
-             null
+             0
          );
 
 INSERT INTO product_entity (
@@ -126,16 +120,14 @@ INSERT INTO inventory_entity (
     available_stock,
     created_at,
     last_updated_at,
-    locked,
-    lock_id
+    reserved_amount
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13',
              'd572df76-b527-4e31-8aa3-9aa954d17103',
              20,
              '2024-05-20T17:27:00Z',
              '2024-05-20T17:27:00Z',
-             false,
-             null
+             0
          );
 
 INSERT INTO product_entity (
@@ -161,16 +153,14 @@ INSERT INTO inventory_entity (
     available_stock,
     created_at,
     last_updated_at,
-    locked,
-    lock_id
+    reserved_amount
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c14',
              'd572df76-b527-4e31-8aa3-9aa954d17104',
              25,
              '2024-06-01T06:21:00Z',
              '2024-06-01T06:21:00Z',
-             false,
-             null
+             0
          );
 
 -- INSERT INTO product_entity (
@@ -196,6 +186,7 @@ INSERT INTO inventory_entity (
 --     available_stock,
 --     created_at,
 --     last_updated_at,
+--     reserved_amount,
 --     locked,
 --     lock_id
 -- ) VALUES (
@@ -204,6 +195,7 @@ INSERT INTO inventory_entity (
 --              25,
 --              '2025-11-29T16:21:00Z',
 --              '2025-11-29T16:21:00Z',
+--              0,
 --              false,
 --              null
 --          );

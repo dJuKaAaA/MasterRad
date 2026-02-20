@@ -7,12 +7,15 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.ftn.dto.*;
 import org.ftn.resource.param.PaginationParam;
-import org.ftn.service.InventoryTCCService;
 import org.ftn.service.InventoryService;
+import org.ftn.service.InventoryTCCService;
 import org.jboss.resteasy.reactive.ResponseStatus;
 
+import java.net.ConnectException;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.ftn.constant.Roles.*;
@@ -118,33 +121,44 @@ public class InventoryResource {
         return inventoryService.updateProduct(productId, body);
     }
 
+    @Retry(maxRetries = 2, delay = 100, retryOn = {ConnectException.class})
     @PATCH
-    @Path("/tcc/prepare/{productId}/{amount}/tx/{txId}")
+    @Path("/tcc/try/{productId}/{amount}")
     @RolesAllowed({COORDINATOR})
-    public VoteResponse prepare(@PathParam("productId") UUID productId,
-                                @PathParam("amount") int amount,
-                                @PathParam("txId") UUID txId) {
-        return inventoryTCCService.prepare(productId, amount, txId);
+    public InventoryResponseDto prepare(@PathParam("productId") UUID productId,
+                                        @PathParam("amount") int amount) {
+        return inventoryTCCService.tccTry(productId, amount);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/tcc/commit/{productId}/{amount}/lock/{lockId}")
-    @ResponseStatus(204)
+    @Path("/tcc/commit/{productId}/{amount}")
     @RolesAllowed({COORDINATOR})
     public void commit(@PathParam("productId") UUID productId,
-                       @PathParam("amount") int amount,
-                       @PathParam("lockId") UUID lockId) {
-        inventoryTCCService.commit(productId, amount, lockId);
+                       @PathParam("amount") int amount) {
+        inventoryTCCService.tccCommit(productId, amount);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/tcc/rollback/{productId}/{amount}/lock/{lockId}")
+    @Path("/tcc/cancel/{productId}/{amount}")
     @ResponseStatus(204)
     @RolesAllowed({COORDINATOR})
     public void rollback(@PathParam("productId") UUID productId,
-                         @PathParam("amount") int amount,
-                         @PathParam("lockId") UUID lockId) {
-        inventoryTCCService.rollback(productId, amount, lockId);
+                         @PathParam("amount") int amount) {
+        inventoryTCCService.tccCancel(productId, amount);
     }
 
 }

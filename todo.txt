@@ -1,5 +1,2 @@
-- implementirani 2PC je u stvari TCC, preimenuj ga u TCC
-- implementirati 2PC uz pomoc quarkus-narayana-lra ekstenzije
-- ukloniti saga-orchestrator service i logiku za orkestraciju staviti u
-  order-service ???
 - poruke koje se nisu poslale, zezaju na Kafki
+- implementiraj monolit 2PC

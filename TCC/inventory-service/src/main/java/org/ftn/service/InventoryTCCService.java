@@ -1,11 +1,11 @@
 package org.ftn.service;
 
-import org.ftn.dto.VoteResponse;
+import org.ftn.dto.InventoryResponseDto;
 
 import java.util.UUID;
 
 public interface InventoryTCCService {
-    VoteResponse prepare(UUID productId, int amount, UUID txId);
-    void commit(UUID productId, int amount, UUID lockId);
-    void rollback(UUID productId, int amount, UUID lockId);
+    InventoryResponseDto tccTry(UUID productId, int amount);
+    void tccCommit(UUID productId, int amount);
+    void tccCancel(UUID productId, int amount);
 }

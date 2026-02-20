@@ -6,16 +6,18 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.ftn.constant.OrderStatus;
+import org.ftn.dto.OrderRequestDto;
 import org.ftn.dto.OrderResponseDto;
-import org.ftn.dto.OrderWithLockRequestDto;
 import org.ftn.dto.PageResponse;
-import org.ftn.dto.VoteResponse;
 import org.ftn.resource.param.PaginationParam;
-import org.ftn.service.OrderTCCService;
 import org.ftn.service.OrderService;
+import org.ftn.service.OrderTCCService;
 import org.jboss.resteasy.reactive.ResponseStatus;
 
+import java.net.ConnectException;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.ftn.constant.Roles.*;
@@ -105,32 +107,45 @@ public class OrderResource {
         return orderService.getAllByProductId(productId, paginationParam.getPage(), paginationParam.getSize());
     }
 
+    @Retry(maxRetries = 2, delay = 100, retryOn = {ConnectException.class})
     @POST
-    @Path("/tcc/prepare")
+    @Path("/tcc/try")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ResponseStatus(201)
     @RolesAllowed({COORDINATOR})
-    public VoteResponse prepare(@Valid OrderWithLockRequestDto body) {
-        return orderTCCService.prepare(body);
+    public OrderResponseDto prepare(@Valid OrderRequestDto body) {
+        return orderTCCService.tccTry(body);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/{id}/tcc/commit/lock/{lockId}")
+    @Path("/tcc/commit/{id}")
     @ResponseStatus(204)
     @RolesAllowed({COORDINATOR})
-    public void commit(@PathParam("id") UUID id,
-                       @PathParam("lockId") UUID lockId) {
-        orderTCCService.commit(id, lockId);
+    public void commit(@PathParam("id") UUID id) {
+        orderTCCService.tccCommit(id);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/{id}/tcc/rollback/lock/{lockId}")
+    @Path("/tcc/cancel/{id}")
     @ResponseStatus(204)
     @RolesAllowed({COORDINATOR})
-    public void rollback(@PathParam("id") UUID id,
-                         @PathParam("lockId") UUID lockId) {
-        orderTCCService.rollback(id, lockId);
+    public void rollback(@PathParam("id") UUID id) {
+        orderTCCService.tccCancel(id);
     }
 
 }

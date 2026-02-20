@@ -7,15 +7,17 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.ftn.dto.PageResponse;
+import org.ftn.dto.PaymentRequestDto;
 import org.ftn.dto.PaymentResponseDto;
-import org.ftn.dto.PaymentWithLockRequestDto;
-import org.ftn.dto.VoteResponse;
 import org.ftn.resource.param.PaginationParam;
-import org.ftn.service.PaymentTCCService;
 import org.ftn.service.PaymentService;
+import org.ftn.service.PaymentTCCService;
 import org.jboss.resteasy.reactive.ResponseStatus;
 
+import java.net.ConnectException;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.ftn.constant.Roles.*;
@@ -79,31 +81,42 @@ public class PaymentResource {
         return paymentService.get(id, UUID.fromString(context.getUserPrincipal().getName()));
     }
 
+    @Retry(maxRetries = 2, delay = 100, retryOn = {ConnectException.class})
     @POST
-    @Path("/tcc/prepare")
+    @Path("/tcc/try")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ResponseStatus(201)
     @RolesAllowed({COORDINATOR})
-    public VoteResponse prepare(@Valid PaymentWithLockRequestDto body) {
-        return paymentTCCService.prepare(body);
+    public PaymentResponseDto prepare(@Valid PaymentRequestDto body) {
+        return paymentTCCService.tccTry(body);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/{id}/tcc/commit/lock/{lockId}")
-    @ResponseStatus(204)
+    @Path("/tcc/commit/{id}")
     @RolesAllowed({COORDINATOR})
-    public void commit(@PathParam("id") UUID id,
-                       @PathParam("lockId") UUID lockId) {
-        paymentTCCService.commit(id, lockId);
+    public void commit(@PathParam("id") UUID id) {
+        paymentTCCService.tccCommit(id);
     }
 
+    @Retry(
+            maxRetries = 10,
+            delay = 1,
+            delayUnit = ChronoUnit.SECONDS,
+            jitter = 500,
+            jitterDelayUnit = ChronoUnit.MILLIS
+    )
     @PATCH
-    @Path("/{id}/tcc/rollback/lock/{lockId}")
-    @ResponseStatus(204)
+    @Path("/tcc/cancel/{id}")
     @RolesAllowed({COORDINATOR})
-    public void rollback(@PathParam("id") UUID id,
-                         @PathParam("lockId") UUID lockId) {
-        paymentTCCService.rollback(id, lockId);
+    public void rollback(@PathParam("id") UUID id) {
+        paymentTCCService.tccCancel(id);
     }
 }

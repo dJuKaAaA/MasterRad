@@ -7,7 +7,5 @@ public record InventoryResponseDto(UUID id,
                                    ProductResponseDto product,
                                    int availableStock,
                                    LocalDateTime createdAt,
-                                   LocalDateTime lastUpdatedAt,
-                                   boolean locked,
-                                   UUID lockId) {
+                                   LocalDateTime lastUpdatedAt) {
 }

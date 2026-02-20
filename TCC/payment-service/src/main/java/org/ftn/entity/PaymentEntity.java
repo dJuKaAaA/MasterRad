@@ -19,8 +19,6 @@ public class PaymentEntity {
     private PaymentStatus status;
     private WalletEntity payer;
     private BigDecimal totalPrice;
-    private boolean locked;
-    private UUID lockId;
 
     @Id
     @GeneratedValue
@@ -62,15 +60,6 @@ public class PaymentEntity {
         return this.totalPrice;
     }
 
-    public boolean isLocked() {
-        return locked;
-    }
-
-    @Column(name = "lock_id")
-    public UUID getLockId() {
-        return lockId;
-    }
-
     public void setId(UUID id) {
         this.id = id;
     }
@@ -101,23 +90,6 @@ public class PaymentEntity {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
-    }
-
-    public void setLocked(boolean locked) {
-        this.locked = locked;
-    }
-
-    public void setLockId(UUID lockId) {
-        this.lockId = lockId;
-    }
-
-    public boolean tryUnlock(UUID lockId) {
-        if (lockId.equals(this.lockId)) {
-            this.locked = false;
-            this.lockId = null;
-            return true;
-        }
-        return false;
     }
 
 }

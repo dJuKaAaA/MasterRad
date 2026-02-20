@@ -2,38 +2,33 @@ package org.ftn.client;
 
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.ftn.client.dto.OrderRequestDto;
-import org.ftn.client.dto.VoteResponseDto;
+import org.ftn.client.dto.OrderResponseDto;
 import org.ftn.client.exception.RestClientExceptionMapper;
 
 import java.util.UUID;
 
-@RegisterProvider(RestClientExceptionMapper.class)
 @RegisterRestClient(configKey = "order-client")
 public interface OrderClient {
     @POST
-    @Path("/tcc/prepare")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/tcc/try")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
-    VoteResponseDto prepare(@Valid OrderRequestDto body,
+    OrderResponseDto tccTry(@Valid OrderRequestDto body,
                             @HeaderParam("token") String token);
 
     @PATCH
-    @Path("/{id}/tcc/commit/lock/{lockId}")
+    @Path("/tcc/commit/{id}")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
-    void commit(@PathParam("id") UUID id,
-                @PathParam("lockId") UUID lockId,
-                @HeaderParam("token") String token);
+    void tccCommit(@PathParam("id") UUID id,
+                   @HeaderParam("token") String token);
 
     @PATCH
-    @Path("/{id}/tcc/rollback/lock/{lockId}")
+    @Path("/tcc/cancel/{id}")
     @ClientHeaderParam(name = "Authorization", value = "Bearer {token}")
-    void rollback(@PathParam("id") UUID id,
-                  @PathParam("lockId") UUID lockId,
-                  @HeaderParam("token") String token);
+    void tccCancel(@PathParam("id") UUID id,
+                   @HeaderParam("token") String token);
 }
+

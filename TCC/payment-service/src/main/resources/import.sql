@@ -16,9 +16,7 @@ INSERT INTO payment_entity (
     payed_at,
     status,
     payer_id,
-    total_price,
-    locked,
-    lock_id
+    total_price
 ) VALUES (
              'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d60',
              59.99,
@@ -27,9 +25,7 @@ INSERT INTO payment_entity (
              '2025-12-12T12:01:00Z',
              'SUCCESS',
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
-             119.98,
-             false,
-             null
+             119.98
          );
 
 INSERT INTO payment_entity (
@@ -40,9 +36,7 @@ INSERT INTO payment_entity (
     payed_at,
     status,
     payer_id,
-    total_price,
-    locked,
-    lock_id
+    total_price
 ) VALUES (
              'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d61',
              129.99,
@@ -51,9 +45,7 @@ INSERT INTO payment_entity (
              '2025-10-13T14:04:00Z',
              'SUCCESS',
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
-             389.97,
-             false,
-             null
+             389.97
          );
 
 INSERT INTO payment_entity (
@@ -64,9 +56,7 @@ INSERT INTO payment_entity (
     payed_at,
     status,
     payer_id,
-    total_price,
-    locked,
-    lock_id
+    total_price
 ) VALUES (
              'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d62',
              89.99,
@@ -75,9 +65,7 @@ INSERT INTO payment_entity (
              '2025-11-20T20:31:00Z',
              'SUCCESS',
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
-             449.95,
-             false,
-             null
+             449.95
          );
 
 INSERT INTO payment_entity (
@@ -88,9 +76,7 @@ INSERT INTO payment_entity (
     payed_at,
     status,
     payer_id,
-    total_price,
-    locked,
-    lock_id
+    total_price
 ) VALUES (
              'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d63',
              599.99,
@@ -99,9 +85,7 @@ INSERT INTO payment_entity (
              '2025-12-01T13:14:00Z',
              'SUCCESS',
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
-             2399.96,
-             false,
-             null
+             2399.96
          );
 
 INSERT INTO payment_entity (
@@ -112,9 +96,7 @@ INSERT INTO payment_entity (
     payed_at,
     status,
     payer_id,
-    total_price,
-    locked,
-    lock_id
+    total_price
 ) VALUES (
              'e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d64',
              2099.99,
@@ -123,7 +105,5 @@ INSERT INTO payment_entity (
              '2025-11-17T20:35:00Z',
              'SUCCESS',
              'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20',
-             2099.99,
-             false,
-             null
+             2099.99
          );

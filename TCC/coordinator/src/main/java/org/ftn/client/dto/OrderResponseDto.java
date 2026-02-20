@@ -8,7 +8,5 @@ public record OrderResponseDto(UUID id,
                                int quantity,
                                UUID userId,
                                LocalDateTime createdAt,
-                               OrderStatus status,
-                               boolean locked,
-                               UUID lockId) {
+                               OrderStatus status) {
 }

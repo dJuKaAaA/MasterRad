@@ -6,6 +6,5 @@ import java.util.UUID;
 public record PaymentRequestDto(BigDecimal price,
                                 UUID productId,
                                 Integer productQuantity,
-                                UUID userId,
-                                UUID txId) {
+                                UUID userId) {
 }

@@ -11,7 +11,5 @@ public record PaymentResponseDto(UUID id,
                                  LocalDateTime payedAt,
                                  PaymentStatus status,
                                  UUID userId,
-                                 BigDecimal totalPrice,
-                                 boolean locked,
-                                 UUID lockId) {
+                                 BigDecimal totalPrice) {
 }

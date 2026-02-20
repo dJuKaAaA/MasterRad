@@ -1,12 +1,12 @@
 package org.ftn.service;
 
-import org.ftn.dto.PaymentWithLockRequestDto;
-import org.ftn.dto.VoteResponse;
+import org.ftn.dto.PaymentRequestDto;
+import org.ftn.dto.PaymentResponseDto;
 
 import java.util.UUID;
 
 public interface PaymentTCCService {
-    VoteResponse prepare(PaymentWithLockRequestDto dto);
-    void commit(UUID id, UUID lockId);
-    void rollback(UUID id, UUID lockId);
+    PaymentResponseDto tccTry(PaymentRequestDto dto);
+    void tccCommit(UUID id);
+    void tccCancel(UUID id);
 }
