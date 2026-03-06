@@ -3,6 +3,7 @@ package org.ftn.entity;
 import jakarta.persistence.*;
 import org.ftn.constant.NeedRollback;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -16,16 +17,19 @@ public class ParticipantDataEntity {
     private UUID orderId;
     private UUID productId;
     private int amount;
+    private BigDecimal price;
+    private UUID userId;
 
     public ParticipantDataEntity() {
     }
 
-    public ParticipantDataEntity(UUID id, UUID paymentId, UUID orderId, UUID productId, int amount) {
+    public ParticipantDataEntity(UUID id, UUID paymentId, UUID orderId, UUID productId, int amount, BigDecimal price) {
         this.id = id;
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.productId = productId;
         this.amount = amount;
+        this.price = price;
     }
 
     @Id
@@ -53,6 +57,15 @@ public class ParticipantDataEntity {
         return amount;
     }
 
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    @Column(name = "user_id")
+    public UUID getUserId() {
+        return userId;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -71,5 +84,13 @@ public class ParticipantDataEntity {
 
     public void setAmount(int amount) {
         this.amount = amount;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 }

@@ -1,4 +1,4 @@
-Write-Host "Starting SAGA Webshop in Dev mode"
+Write-Host "Starting SAGA Webshop in Dev mode..."
 
 Start-Process powershell -ArgumentList "cd .\order-service\; ./mvnw quarkus:dev;"
 Start-Process powershell -ArgumentList "cd .\inventory-service\; ./mvnw quarkus:dev;"

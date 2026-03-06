@@ -28,6 +28,7 @@ public class CoordinatorTransactionEntity {
         this.decision = decision;
         this.createdAt = createdAt;
         this.completed = completed;
+        this.participantData = new ParticipantDataEntity();
     }
 
     @Id

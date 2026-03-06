@@ -1,5 +1,6 @@
-Write-Host "Starting TCC Webshop in Dev mode"
+Write-Host "Starting TCC Webshop in Dev mode..."
 
+Start-Process powershell -ArgumentList "cd .\coordinator\; ./mvnw quarkus:dev;"
 Start-Process powershell -ArgumentList "cd .\order-service\; ./mvnw quarkus:dev;"
 Start-Process powershell -ArgumentList "cd .\inventory-service\; ./mvnw quarkus:dev;"
 Start-Process powershell -ArgumentList "cd .\payment-service\; ./mvnw quarkus:dev;"

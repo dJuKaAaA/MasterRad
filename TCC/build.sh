@@ -1,4 +1,10 @@
 (
+    cd ./coordinator
+    ./mvnw clean package
+    docker build -f src/main/docker/Dockerfile.jvm -t quarkus/coordinator-tcc-jvm .
+)
+&
+(
     cd ./order-service
     ./mvnw clean package
     docker build -f src/main/docker/Dockerfile.jvm -t quarkus/order-service-tcc-jvm .
