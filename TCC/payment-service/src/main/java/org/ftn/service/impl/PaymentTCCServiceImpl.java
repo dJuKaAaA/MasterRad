@@ -66,6 +66,7 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
         return paymentMapper.toDto(payment);
     }
 
+    @Transactional
     @Override
     public void tccCommit(UUID id) {
         LOG.infof("Committing payment %s", id);
@@ -81,9 +82,9 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
         payment.setStatus(PaymentStatus.SUCCESS);
 
         LOG.infof("Successful commit for payment %s", payment.getId());
-        paymentRepository.persist(payment);
     }
 
+    @Transactional
     @Override
     public void tccCancel(UUID id) {
         Optional<PaymentEntity> optionalPayment = paymentRepository
@@ -94,7 +95,6 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
             PaymentEntity payment = optionalPayment.get();
 
             payment.setStatus(PaymentStatus.FAILED);
-            paymentRepository.persist(payment);
             LOG.infof("Successful rollback for payment %s", payment.getId());
         }
 

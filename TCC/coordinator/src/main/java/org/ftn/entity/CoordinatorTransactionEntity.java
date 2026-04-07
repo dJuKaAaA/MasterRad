@@ -16,6 +16,7 @@ public class CoordinatorTransactionEntity {
     private Decision decision;
     private Instant createdAt;
     private ParticipantDataEntity participantData;
+    private String abortReason;
     private boolean completed;
 
     public CoordinatorTransactionEntity() {
@@ -58,6 +59,11 @@ public class CoordinatorTransactionEntity {
         return participantData;
     }
 
+    @Column(name = "abort_reason")
+    public String getAbortReason() {
+        return abortReason;
+    }
+
     public boolean isCompleted() {
         return completed;
     }
@@ -80,6 +86,10 @@ public class CoordinatorTransactionEntity {
 
     public void setParticipantData(ParticipantDataEntity participantData) {
         this.participantData = participantData;
+    }
+
+    public void setAbortReason(String abortReason) {
+        this.abortReason = abortReason;
     }
 
     public void setCompleted(boolean completed) {

@@ -132,6 +132,7 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryMapper.toDto(inventory);
     }
 
+    @Transactional
     @Override
     public InventoryResponseDto create(InventoryRequestDto dto, UUID merchantIdFromJwt) {
         LOG.infof("Creating inventory");
@@ -175,7 +176,6 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         inventory.getProduct().setStatus(ProductStatus.DISCONTINUED);
-        inventoryRepository.persist(inventory);
         LOG.infof("Product %s successfully discontinued", productId);
         return productMapper.toDto(inventory.getProduct());
     }
@@ -197,7 +197,6 @@ public class InventoryServiceImpl implements InventoryService {
                 });
 
         inventory.increaseAvailableStock(amount);
-        inventoryRepository.persist(inventory);
         LOG.infof("Successfully increased stock by %d for inventory %s", amount, inventory.getId());
         return inventoryMapper.toDto(inventory);
     }
@@ -222,7 +221,6 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.getProduct().setName(productRequestDto.name());
         inventory.getProduct().setDescription(productRequestDto.description());
         inventory.getProduct().setPrice(productRequestDto.price());
-        inventoryRepository.persist(inventory);
 
         LOG.infof("Successfully updated product %s", inventory.getProduct().getId());
         return productMapper.toDto(inventory.getProduct());

@@ -1,4 +1,4 @@
-package org.ftn.service;
+package org.ftn.service.test1;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -7,14 +7,13 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.ForbiddenException;
-import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.*;
 import org.ftn.constant.ProductStatus;
 import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.entity.ProductEntity;
 import org.ftn.repository.InventoryRepository;
+import org.ftn.service.InventoryService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,11 +62,11 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "0, 5, 0, 5, 1, 5",
-            "0, 10, 0, 5, 1, 5",
-            "1, 2, 1, 2, 3, 5",
-            "1, 3, 1, 2, 2, 5",
-            "2, 5, 2, 0, 1, 5"
+            "0, 5, 0, 5, 2, 6",
+            "0, 10, 0, 6, 1, 6",
+            "1, 2, 1, 2, 3, 6",
+            "1, 3, 1, 3, 2, 6",
+            "2, 5, 2, 0, 2, 6"
     })
     public void testGetAll(int page,
                            int size,
@@ -84,11 +83,11 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 5, 0, 5, 1, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 10, 0, 5, 1, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 2, 1, 2, 3, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 3, 1, 2, 2, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 2, 5, 2, 0, 1, 5",
+            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 0, 5, 0, 5, 2, 6",
+            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 0, 10, 0, 6, 1, 6",
+            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 1, 2, 1, 2, 3, 6",
+            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 1, 3, 1, 3, 2, 6",
+            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 2, 5, 2, 0, 2, 6",
             "8cca7a29-5add-4197-ad56-43be327ea13d, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByMerchantId(UUID merchantId,
@@ -122,7 +121,7 @@ public class InventoryServiceTest {
     @Test
     public void testGetByIdAndMerchantId_Success() {
         UUID id = UUID.fromString("a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
-        UUID merchantId = UUID.fromString("7e865ca7-a38e-4002-9569-fa6d01e9bdbf");
+        UUID merchantId = UUID.fromString("76347922-6f4f-41df-8ff5-dae6bb66b69a");
         InventoryResponseDto inventory = inventoryService.get(id, merchantId);
         assertEquals(id, inventory.id());
         assertEquals(merchantId, inventory.product().merchantId());
@@ -131,7 +130,7 @@ public class InventoryServiceTest {
     @Test
     public void testGetByIdAndMerchantId_NotFound() {
         UUID id = UUID.fromString("b3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
-        UUID merchantId = UUID.fromString("7e865ca7-a38e-4002-9569-fa6d01e9bdbf");
+        UUID merchantId = UUID.fromString("055c925e-b2fc-49af-bcfc-07913e52c82f");
         NotFoundException exception = assertThrows(NotFoundException.class, () -> inventoryService.get(id, merchantId));
         assertEquals("Inventory not found", exception.getMessage());
     }
@@ -295,8 +294,7 @@ public class InventoryServiceTest {
     @Test
     public void testDeleteInventory_Success() {
         // Setup
-        InventoryEntity toDelete = new InventoryEntity();
-        toDelete.setProduct(new ProductEntity());
+        InventoryEntity toDelete = getDummyInventory();
         inventoryRepository.persist(toDelete);
 
         // Test

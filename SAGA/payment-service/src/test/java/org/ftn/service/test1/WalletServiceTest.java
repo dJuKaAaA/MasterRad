@@ -1,4 +1,4 @@
-package org.ftn.service;
+package org.ftn.service.test1;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -8,6 +8,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.WalletResponseDto;
 import org.ftn.entity.WalletEntity;
 import org.ftn.repository.WalletRepository;
+import org.ftn.service.WalletService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -28,7 +29,7 @@ public class WalletServiceTest {
     }
 
     private UUID getExistingUserId() {
-        return UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
+        return UUID.fromString("8cca7a29-5add-4197-ad56-48be327ea13c");
     }
 
     @Transactional

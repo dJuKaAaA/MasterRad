@@ -1,5 +1,6 @@
 package org.ftn.service.impl;
 
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -62,6 +63,7 @@ public class WalletServiceImpl implements WalletService {
                 });
     }
 
+    @Transactional
     @Override
     public WalletResponseDto increaseBalanceForUser(UUID userId, BigDecimal balance) {
         LOG.infof("Increasing balance of wallet for user %s", userId);

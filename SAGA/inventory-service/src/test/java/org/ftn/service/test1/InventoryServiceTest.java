@@ -1,4 +1,4 @@
-package org.ftn.service;
+package org.ftn.service.test1;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -7,12 +7,15 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.NotFoundException;
 import org.ftn.constant.ProductStatus;
 import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.entity.ProductEntity;
 import org.ftn.repository.InventoryRepository;
+import org.ftn.service.InventoryService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -61,11 +64,11 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "0, 5, 0, 5, 1, 5",
-            "0, 10, 0, 5, 1, 5",
-            "1, 2, 1, 2, 3, 5",
-            "1, 3, 1, 2, 2, 5",
-            "2, 5, 2, 0, 1, 5"
+            "0, 5, 0, 5, 2, 6",
+            "0, 10, 0, 6, 1, 6",
+            "1, 2, 1, 2, 3, 6",
+            "1, 3, 1, 3, 2, 6",
+            "2, 5, 2, 0, 2, 6"
     })
     public void testGetAll(int page,
                            int size,
@@ -82,12 +85,12 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 0, 5, 0, 5, 1, 5",
-            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 0, 10, 0, 5, 1, 5",
-            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 1, 2, 1, 2, 3, 5",
-            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 1, 3, 1, 2, 2, 5",
-            "76347922-6f4f-41df-8ff5-dae6bb66b69a, 2, 5, 2, 0, 1, 5",
-            "76347922-6f4f-41df-8ff5-dae6bb66b69b, 0, 5, 0, 0, 1, 0"
+            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 5, 0, 5, 2, 6",
+            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 10, 0, 6, 1, 6",
+            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 2, 1, 2, 3, 6",
+            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 3, 1, 3, 2, 6",
+            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 2, 5, 2, 0, 2, 6",
+            "8cca7a29-5add-4197-ad56-43be327ea13d, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByMerchantId(UUID merchantId,
                                        int page,
@@ -120,7 +123,7 @@ public class InventoryServiceTest {
     @Test
     public void testGetByIdAndMerchantId_Success() {
         UUID id = UUID.fromString("a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
-        UUID merchantId = UUID.fromString("76347922-6f4f-41df-8ff5-dae6bb66b69a");
+        UUID merchantId = UUID.fromString("7e865ca7-a38e-4002-9569-fa6d01e9bdbf");
         InventoryResponseDto inventory = inventoryService.get(id, merchantId);
         assertEquals(id, inventory.id());
         assertEquals(merchantId, inventory.product().merchantId());
@@ -129,7 +132,7 @@ public class InventoryServiceTest {
     @Test
     public void testGetByIdAndMerchantId_NotFound() {
         UUID id = UUID.fromString("b3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
-        UUID merchantId = UUID.fromString("055c925e-b2fc-49af-bcfc-07913e52c82f");
+        UUID merchantId = UUID.fromString("7e865ca7-a38e-4002-9569-fa6d01e9bdbf");
         NotFoundException exception = assertThrows(NotFoundException.class, () -> inventoryService.get(id, merchantId));
         assertEquals("Inventory not found", exception.getMessage());
     }
@@ -293,28 +296,14 @@ public class InventoryServiceTest {
     @Test
     public void testDeleteInventory_Success() {
         // Setup
-        InventoryEntity toDelete = getDummyInventory();
+        InventoryEntity toDelete = new InventoryEntity();
+        toDelete.setProduct(new ProductEntity());
         inventoryRepository.persist(toDelete);
 
         // Test
         inventoryService.delete(toDelete.getId());
         Optional<InventoryEntity> optionalInventory = inventoryRepository.findByIdOptional(toDelete.getId());
         assertTrue(optionalInventory.isEmpty());
-    }
-
-    @Transactional
-    @Test
-    public void testDeleteInventory_InventoryLocked() {
-        // Setup
-        InventoryEntity toDelete = getDummyInventory();
-        toDelete.setLocked(true);
-        inventoryRepository.persist(toDelete);
-        ClientErrorException exception = assertThrows(ClientErrorException.class, () -> inventoryService.delete(toDelete.getId()));
-        assertEquals("Inventory is currently locked", exception.getMessage());
-        assertEquals(409, exception.getResponse().getStatus());
-
-        // Cleanup
-        inventoryRepository.delete(toDelete);
     }
 
     @Test
@@ -337,21 +326,6 @@ public class InventoryServiceTest {
         assertNotNull(result);
 
         assertEquals(ProductStatus.DISCONTINUED, result.getProduct().getStatus());
-
-        // Cleanup
-        inventoryRepository.delete(inventory);
-    }
-
-    @Transactional
-    @Test
-    public void testDiscontinueProduct_InventoryLocked() {
-        // Setup
-        InventoryEntity inventory = getDummyInventory();
-        inventory.setLocked(true);
-        inventoryRepository.persist(inventory);
-        ClientErrorException exception = assertThrows(ClientErrorException.class, () -> inventoryService.discontinueProduct(inventory.getProduct().getId()));
-        assertEquals("Inventory is currently locked", exception.getMessage());
-        assertEquals(409, exception.getResponse().getStatus());
 
         // Cleanup
         inventoryRepository.delete(inventory);
@@ -389,21 +363,6 @@ public class InventoryServiceTest {
         assertNotNull(result);
 
         assertEquals(200, result.getAvailableStock());
-
-        // Cleanup
-        inventoryRepository.delete(inventory);
-    }
-
-    @Transactional
-    @Test
-    public void testReplenishStock_InventoryLocked() {
-        // Setup
-        InventoryEntity inventory = getDummyInventory();
-        inventory.setLocked(true);
-        inventoryRepository.persist(inventory);
-        ClientErrorException exception = assertThrows(ClientErrorException.class, () -> inventoryService.replenishStock(inventory.getId(), 100));
-        assertEquals("Inventory is currently locked", exception.getMessage());
-        assertEquals(409, exception.getResponse().getStatus());
 
         // Cleanup
         inventoryRepository.delete(inventory);
@@ -466,32 +425,6 @@ public class InventoryServiceTest {
         assertEquals(expectedInventory.getAvailableStock(), newInventory.getAvailableStock());
         assertEquals(expectedInventory.getCreatedAt(), newInventory.getCreatedAt());
         assertEquals(expectedInventory.getLastUpdatedAt(), newInventory.getLastUpdatedAt());
-
-        // Cleanup
-        inventoryRepository.delete(expectedInventory);
-    }
-
-    @Transactional
-    @Test
-    public void testUpdateProduct_InventoryLocked() {
-        // expected values
-        InventoryEntity expectedInventory = getDummyInventory();
-        expectedInventory.setLocked(true);
-        inventoryRepository.persist(expectedInventory);
-        ProductEntity expectedProduct = expectedInventory.getProduct();
-
-        ClientErrorException exception = assertThrows(ClientErrorException.class, () ->
-                inventoryService.updateProduct(
-                        expectedInventory.getProduct().getId(),
-                        new ProductRequestDto(
-                                "New product name",
-                                "New product description",
-                                BigDecimal.ONE,
-                                expectedProduct.getMerchantId()
-                        )
-                ));
-        assertEquals("Inventory is currently locked", exception.getMessage());
-        assertEquals(409, exception.getResponse().getStatus());
 
         // Cleanup
         inventoryRepository.delete(expectedInventory);

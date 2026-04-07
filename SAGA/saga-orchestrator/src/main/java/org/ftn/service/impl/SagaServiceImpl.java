@@ -238,6 +238,7 @@ public class SagaServiceImpl implements SagaService {
         return sagaMapper.toDto(newSaga);
     }
 
+    @Transactional
     @Override
     public SagaResponseDto getSaga(UUID id) {
         return sagaMapper.toDto(sagaRepository

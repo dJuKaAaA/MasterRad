@@ -1,11 +1,13 @@
 package org.ftn.service.impl;
 
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -47,6 +49,12 @@ public class InventorySagaServiceImpl implements InventorySagaService {
     @Override
     public InventoryResponseDto reserve(UUID productId, int amount) {
         LOG.infof("Reserving product %s", productId);
+
+        if (productId == null) {
+            LOG.error("Product id omitted");
+            throw new BadRequestException("Product id omitted");
+        }
+
         InventoryEntity inventory = inventoryRepository
                 .find("product.id", productId)
                 .firstResultOptional()
@@ -55,22 +63,24 @@ public class InventorySagaServiceImpl implements InventorySagaService {
                     return new NotFoundException("Inventory not found");
                 });
 
-        // Validations
+        if (amount < 1) {
+            LOG.errorf("Invalid amount value: %d", amount);
+            throw new BadRequestException("Amount cannot be less than 1");
+        }
         if (inventory.getAvailableStock() < amount) {
-            LOG.errorf("Not enough products in stock for product %s (available: %d, wanted: %d)",
+            LOG.errorf("Failed to reserve product %s due to insufficient stocks (available: %d, wanted: %d)",
                     inventory.getProduct().getId(),
                     inventory.getAvailableStock(),
                     amount);
-            throw new BadRequestException("Not enough products in stock");
+            throw new BadRequestException("Insufficient stocks");
         }
         if (inventory.getProduct().getStatus() == ProductStatus.DISCONTINUED) {
-            LOG.errorf("Reserving product %s failed because it is discontinued", inventory.getProduct().getId());
+            LOG.errorf("Failed to reserve product %s because it is discontinued", inventory.getProduct().getId());
             throw new BadRequestException("Product is discontinued");
         }
 
         inventory.decreaseAvailableStock(amount);
         inventory.setLastUpdatedAt(Instant.now());
-        inventoryRepository.persist(inventory);
         LOG.infof("Successfully reserved product %s", inventory.getProduct().getId());
         return inventoryMapper.toDto(inventory);
     }
@@ -86,13 +96,12 @@ public class InventorySagaServiceImpl implements InventorySagaService {
             InventoryEntity inventory = optionalInventory.get();
             inventory.increaseAvailableStock(amount);
             inventory.setLastUpdatedAt(Instant.now());
-            inventoryRepository.persist(inventory);
             LOG.infof("Successfully released product %s", productId);
         }
     }
 
-    @Transactional
     @Incoming("inventory-service-commit")
+    @Blocking
     public CompletionStage<Void> reserve(Message<KafkaInventoryRequestDto> msg) {
         UUID productId = msg.getPayload().productReserveRequestDto().productId();
         int quantity = msg.getPayload().productReserveRequestDto().quantity();
@@ -121,8 +130,8 @@ public class InventorySagaServiceImpl implements InventorySagaService {
         return msg.ack();
     }
 
-    @Transactional
     @Incoming("inventory-service-rollback")
+    @Blocking
     public CompletionStage<Void> release(Message<KafkaInventoryErrorDto> msg) {
         UUID productId = msg.getPayload().productId();
         int quantity = msg.getPayload().amount();

@@ -62,6 +62,7 @@ public class WalletServiceImpl implements WalletService {
                 });
     }
 
+    @Transactional
     @Override
     public WalletResponseDto increaseBalanceForUser(UUID userId, BigDecimal balance) {
         LOG.infof("Increasing balance of wallet for user %s", userId);

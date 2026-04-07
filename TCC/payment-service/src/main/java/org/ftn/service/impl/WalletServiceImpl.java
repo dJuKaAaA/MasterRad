@@ -65,6 +65,7 @@ public class WalletServiceImpl implements WalletService {
         return walletMapper.toDto(wallet);
     }
 
+    @Transactional
     @Override
     public WalletResponseDto increaseBalanceForUser(UUID userId, BigDecimal balance) {
         LOG.infof("Increasing balance of wallet for user %s", userId);

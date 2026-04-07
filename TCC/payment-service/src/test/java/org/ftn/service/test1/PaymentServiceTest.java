@@ -1,4 +1,4 @@
-package org.ftn.service;
+package org.ftn.service.test1;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -6,6 +6,7 @@ import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.PageResponse;
 import org.ftn.dto.PaymentResponseDto;
+import org.ftn.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -43,11 +44,11 @@ public class PaymentServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "daa45fd6-3500-4a0d-914d-052082303122, 0, 5, 0, 5, 1, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 0, 10, 0, 5, 1, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 1, 2, 1, 2, 3, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 1, 3, 1, 2, 2, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 2, 5, 2, 0, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 0, 5, 0, 5, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 0, 10, 0, 5, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 1, 2, 1, 2, 3, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 1, 3, 1, 2, 2, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 2, 5, 2, 0, 1, 5",
             "8cca7a29-5add-ffff-ad56-43be327ea13d, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByUserId(UUID merchantId,
@@ -79,16 +80,16 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void testGetByIdAndMerchantId_Success() {
+    public void testGetByIdAndUserId_Success() {
         UUID id = UUID.fromString("e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d60");
-        UUID userId = UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
+        UUID userId = UUID.fromString("19e5ddb1-4c66-4d17-ad06-e8a6af23ed58");
         PaymentResponseDto payment = paymentService.get(id, userId);
         assertEquals(id, payment.id());
         assertEquals(userId, payment.userId());
     }
 
     @Test
-    public void testGetByIdAndMerchantId_NotFound() {
+    public void testGetByIdAndUserId_NotFound() {
         UUID id = UUID.fromString("b3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
         UUID userId = UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
         NotFoundException exception = assertThrows(NotFoundException.class, () -> paymentService.get(id, userId));
@@ -96,7 +97,7 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void testGetByIdAndMerchantId_MerchantMismatch() {
+    public void testGetByIdAndUserId_UserMismatch() {
         UUID id = UUID.fromString("e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d60");
         UUID merchantId = UUID.fromString("7e865ca7-a38e-4000-0000-fa6d01e9bdbf");
         ForbiddenException exception = assertThrows(ForbiddenException.class, () -> paymentService.get(id, merchantId));

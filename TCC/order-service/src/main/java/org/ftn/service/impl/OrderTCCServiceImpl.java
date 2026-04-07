@@ -56,8 +56,6 @@ public class OrderTCCServiceImpl implements OrderTCCService {
 
         order.setStatus(OrderStatus.COMPLETE);
         LOG.infof("Successful commit for order %s", order.getId());
-        orderRepository.persist(order);
-
     }
 
     @Transactional
@@ -70,7 +68,6 @@ public class OrderTCCServiceImpl implements OrderTCCService {
             OrderEntity order = optionalOrder.get();
             order.setStatus(OrderStatus.CANCELED);
             LOG.infof("Successful rollback for order %s", order.getId());
-            orderRepository.persist(order);
         }
     }
 }

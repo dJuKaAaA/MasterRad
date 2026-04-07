@@ -35,6 +35,12 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
     @Override
     public InventoryResponseDto tccTry(UUID productId, int amount) {
         LOG.infof("Reserving product %s", productId);
+
+        if (productId == null) {
+            LOG.error("Product id omitted");
+            throw new BadRequestException("Product id omitted");
+        }
+
         Optional<InventoryEntity> optionalInventory = inventoryRepository
                 .find("product.id", productId)
                 .firstResultOptional();
@@ -45,7 +51,10 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
 
         InventoryEntity inventory = optionalInventory.get();
 
-        // Validations
+        if (amount < 1) {
+            LOG.errorf("Invalid amount value: %d", amount);
+            throw new BadRequestException("Amount cannot be less than 1");
+        }
         if (inventory.getAvailableStock() - inventory.getReservedAmount() < amount) {
             LOG.errorf("All of the products are reserved",
                     inventory.getId(),
@@ -55,7 +64,8 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
         }
 
         if (inventory.getAvailableStock() < amount) {
-            LOG.errorf("Failed to reserve product due to insufficient stocks (available: %d, wanted: %d)",
+            LOG.errorf("Failed to reserve product %s due to insufficient stocks (available: %d, wanted: %d)",
+                    inventory.getProduct().getId(),
                     inventory.getId(),
                     inventory.getAvailableStock(),
                     amount);
@@ -63,11 +73,10 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
         }
         if (inventory.getProduct().getStatus() == ProductStatus.DISCONTINUED) {
             LOG.errorf("Failed to reserve product %s because it is discontinued", inventory.getProduct().getId());
-            throw new BadRequestException("Product discontinued");
+            throw new BadRequestException("Product is discontinued");
         }
 
         inventory.increaseReservedStock(amount);
-        inventoryRepository.persist(inventory);
         LOG.infof("Product %s reserved", inventory.getProduct().getId());
 
         return inventoryMapper.toDto(inventory);
@@ -90,7 +99,6 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
         inventory.setLastUpdatedAt(Instant.now());
 
         LOG.infof("Successful commit for product %s", inventory.getProduct().getId());
-        inventoryRepository.persist(inventory);
     }
 
     @Transactional
@@ -105,7 +113,6 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
             InventoryEntity inventory = optionalInventory.get();
             inventory.decreaseReservedStock(amount);
 
-            inventoryRepository.persist(inventory);
             LOG.infof("Successful rollback for inventory %s", inventory.getId());
         }
     }

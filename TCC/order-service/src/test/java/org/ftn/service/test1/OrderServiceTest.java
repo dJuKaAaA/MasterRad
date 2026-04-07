@@ -1,4 +1,4 @@
-package org.ftn.service;
+package org.ftn.service.test1;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -7,6 +7,7 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.constant.OrderStatus;
 import org.ftn.dto.OrderResponseDto;
 import org.ftn.dto.PageResponse;
+import org.ftn.service.OrderService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -83,7 +84,7 @@ public class OrderServiceTest {
     @Test
     public void testGetByIdAndUserId_Success() {
         UUID id = UUID.fromString("03b229a1-0529-4a4a-a920-a7dda2637f70");
-        UUID userId = UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
+        UUID userId = UUID.fromString("19e5ddb1-4c66-4d17-ad06-e8a6af23ed58");
         OrderResponseDto order = orderService.get(id, userId);
         assertEquals(id, order.id());
         assertEquals(userId, order.userId());
@@ -110,11 +111,11 @@ public class OrderServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "daa45fd6-3500-4a0d-914d-052082303122, 0, 5, 0, 5, 1, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 0, 10, 0, 5, 1, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 1, 2, 1, 2, 3, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 1, 3, 1, 2, 2, 5",
-            "daa45fd6-3500-4a0d-914d-052082303122, 2, 5, 2, 0, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 0, 5, 0, 5, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 0, 10, 0, 5, 1, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 1, 2, 1, 2, 3, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 1, 3, 1, 2, 2, 5",
+            "19e5ddb1-4c66-4d17-ad06-e8a6af23ed58, 2, 5, 2, 0, 1, 5",
             "8cca7a29-5add-4197-ad56-43be327ea13c, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByUserId(UUID userId,

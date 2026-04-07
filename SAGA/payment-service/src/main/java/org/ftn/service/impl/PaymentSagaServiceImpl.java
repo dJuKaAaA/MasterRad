@@ -1,6 +1,7 @@
 package org.ftn.service.impl;
 
 import io.quarkus.logging.Log;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -58,7 +59,7 @@ public class PaymentSagaServiceImpl implements PaymentSagaService {
                 .find("userId", dto.userId())
                 .firstResultOptional()
                 .orElseThrow(() -> {
-                    LOG.errorf("Wallet for user % not found");
+                    LOG.errorf("Wallet for user %s not found", dto.userId());
                     return new NotFoundException("User's wallet not found");
                 });
         PaymentEntity payment = paymentMapper.toEntity(dto);
@@ -87,13 +88,12 @@ public class PaymentSagaServiceImpl implements PaymentSagaService {
             PaymentEntity payment = optionalPayment.get();
             payment.getPayer().refund(payment.getTotalPrice());
             payment.setStatus(PaymentStatus.REFUNDED);
-            paymentRepository.persist(payment);
             Log.infof("Successfully refunded payment %s", payment.getId());
         }
     }
 
-    @Transactional
     @Incoming("payment-service-commit")
+    @Blocking
     public CompletionStage<Void> process(Message<KafkaPaymentRequestDto> msg) {
         try {
             PaymentResponseDto paymentResponseDto = process(msg.getPayload().paymentRequestDto());
@@ -123,8 +123,8 @@ public class PaymentSagaServiceImpl implements PaymentSagaService {
         return msg.ack();
     }
 
-    @Transactional
     @Incoming("payment-service-rollback")
+    @Blocking
     public CompletionStage<Void> refund(Message<KafkaPaymentErrorDto> msg) {
         UUID id = msg.getPayload().paymentId();
         refund(id);

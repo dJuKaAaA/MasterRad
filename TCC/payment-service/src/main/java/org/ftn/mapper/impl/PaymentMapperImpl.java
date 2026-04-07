@@ -31,7 +31,7 @@ public class PaymentMapperImpl implements PaymentMapper {
                 entity.getPrice(),
                 entity.getProductId(),
                 entity.getProductQuantity(),
-                LocalDateTime.ofInstant(entity.getPayedAt(), ZoneId.systemDefault()),
+                entity.getPayedAt() == null ? null : LocalDateTime.ofInstant(entity.getPayedAt(), ZoneId.systemDefault()),
                 entity.getStatus(),
                 entity.getPayer().getUserId(),
                 entity.getTotalPrice()

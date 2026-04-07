@@ -1,5 +1,6 @@
 package org.ftn.service.impl;
 
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -65,13 +66,12 @@ public class OrderSagaServiceImpl implements OrderSagaService {
             LOG.infof("Cancelling order %s", id);
             OrderEntity order = optionalOrder.get();
             order.setStatus(OrderStatus.CANCELED);
-            orderRepository.persist(order);
             LOG.infof("Successfully cancelled order %s", order.getId());
         }
     }
 
-    @Transactional
     @Incoming("order-service-commit")
+    @Blocking
     public CompletionStage<Void> createOrder(Message<KafkaOrderRequestDto> msg) {
         OrderResponseDto orderResponseDto = createOrder(msg.getPayload().orderRequestDto());
 
@@ -86,8 +86,8 @@ public class OrderSagaServiceImpl implements OrderSagaService {
         return msg.ack();
     }
 
-    @Transactional
     @Incoming("order-service-rollback")
+    @Blocking
     public CompletionStage<Void> cancelOrder(Message<KafkaOrderErrorDto> msg) {
         UUID id = msg.getPayload().orderId();
         cancelOrder(id);
