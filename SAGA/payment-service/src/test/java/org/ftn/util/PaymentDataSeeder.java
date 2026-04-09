@@ -12,8 +12,8 @@ public class PaymentDataSeeder {
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void seed() {
-        em.createNativeQuery("DELETE FROM payment_entity").executeUpdate();
-        em.createNativeQuery("DELETE FROM wallet_entity").executeUpdate();
+        execute("DELETE FROM payment_entity");
+        execute("DELETE FROM wallet_entity");
         em.clear();
 
         execute(" INSERT INTO wallet_entity ( id, user_id, balance ) VALUES ( 'd1f3c2b4-5a7f-4b3d-9c1e-2f7a3d5b8c20', '8cca7a29-5add-4197-ad56-48be327ea13c', 10000.0 ); ");

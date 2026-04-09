@@ -12,7 +12,7 @@ public class OrderDataSeeder {
 
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void seed() {
-        em.createNativeQuery("DELETE FROM order_entity").executeUpdate();
+        execute("DELETE FROM order_entity");
         em.clear();
 
         execute(" insert into order_entity ( id, product_id, quantity, user_id, created_at, status ) values ( '03b229a1-0529-4a4a-a920-a7dda2637f70', 'd572df76-b527-4e31-8aa3-9aa954d17100', 2, '8cca7a29-5add-4197-ad56-48be327ea13c', '2025-12-12T12:00:00Z', 'COMPLETE' ); ");
