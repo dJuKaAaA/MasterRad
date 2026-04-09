@@ -1,4 +1,4 @@
-package org.ftn.service.test1;
+package org.ftn.service;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -7,7 +7,8 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.constant.OrderStatus;
 import org.ftn.dto.OrderResponseDto;
 import org.ftn.dto.PageResponse;
-import org.ftn.service.OrderService;
+import org.ftn.util.OrderDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,6 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class OrderServiceTest {
     @Inject
     OrderService orderService;
+    @Inject
+    OrderDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @ParameterizedTest
     @CsvSource({

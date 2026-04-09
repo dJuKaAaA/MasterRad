@@ -1,4 +1,4 @@
-package org.ftn.service.test2;
+package org.ftn.service;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -12,8 +12,9 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.repository.InventoryRepository;
-import org.ftn.service.InventorySagaService;
+import org.ftn.util.InventoryDataSeeder;
 import org.ftn.util.KafkaTestResource;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -34,6 +35,13 @@ public class InventorySagaServiceTest {
     @Inject
     @Any
     InMemoryConnector connector;
+    @Inject
+    InventoryDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @Test
     public void testReserve_Success() {
@@ -203,5 +211,4 @@ public class InventorySagaServiceTest {
 
         errorSink.clear();
     }
-
 }

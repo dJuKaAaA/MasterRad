@@ -18,9 +18,9 @@ import java.util.UUID;
 
 @ApplicationScoped
 public class CoordinatorServiceImpl implements CoordinatorService {
-    private OrderService orderService;
-    private InventoryService inventoryService;
-    private PaymentService paymentService;
+    private final OrderService orderService;
+    private final InventoryService inventoryService;
+    private final PaymentService paymentService;
 
     @Inject
     public CoordinatorServiceImpl(OrderService orderService, InventoryService inventoryService, PaymentService paymentService) {

@@ -1,4 +1,4 @@
-package org.ftn.service.test1;
+package org.ftn.service;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -8,7 +8,8 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.WalletResponseDto;
 import org.ftn.entity.WalletEntity;
 import org.ftn.repository.WalletRepository;
-import org.ftn.service.WalletService;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -23,6 +24,13 @@ public class WalletServiceTest {
     WalletService walletService;
     @Inject
     WalletRepository walletRepository;
+    @Inject
+    PaymentDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     private UUID getDummyUserId() {
         return UUID.fromString("ffff7a2b-5add-4197-ad56-48be327ea13c");

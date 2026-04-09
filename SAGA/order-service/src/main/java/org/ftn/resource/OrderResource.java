@@ -108,23 +108,4 @@ public class OrderResource {
         return orderService.getAllByProductId(productId, paginationParam.getPage(), paginationParam.getSize());
     }
 
-    @POST
-    @Path("/saga")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @ResponseStatus(201)
-    @RolesAllowed({SAGA_ORCHESTRATOR})
-    public OrderResponseDto createOrder(@Valid OrderRequestDto body) {
-        return orderSagaService.createOrder(body);
-    }
-
-    @PATCH
-    @Path("/saga/{id}/cancel")
-    @ResponseStatus(204)
-    @RolesAllowed({SAGA_ORCHESTRATOR})
-    public void cancelOrder(@PathParam("id") UUID id) {
-        orderSagaService.cancelOrder(id);
-    }
-
-
 }

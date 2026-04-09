@@ -1,4 +1,4 @@
-package org.ftn.service.test1;
+package org.ftn.service;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -15,8 +15,10 @@ import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.entity.ProductEntity;
 import org.ftn.repository.InventoryRepository;
-import org.ftn.service.InventoryService;
+import org.ftn.util.InventoryDataSeeder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -36,11 +38,18 @@ public class InventoryServiceTest {
     InventoryService inventoryService;
     @Inject
     InventoryRepository inventoryRepository;
+    @Inject
+    InventoryDataSeeder seeder;
 
     private static Validator validator;
 
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
+
     @BeforeAll
-    static void setupValidator() {
+    public static void setupValidator() {
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             validator = factory.getValidator();
         }
@@ -452,6 +461,3 @@ public class InventoryServiceTest {
     }
 
 }
-
-
-

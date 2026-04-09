@@ -132,18 +132,4 @@ public class InventoryResource {
         return inventoryService.updateProduct(productId, body);
     }
 
-    @PATCH
-    @Path("/saga/reserve/{productId}/{amount}")
-    @RolesAllowed({SAGA_ORCHESTRATOR})
-    public InventoryResponseDto reserve(@PathParam("productId") UUID productId, @PathParam("amount") int amount) {
-        return inventorySagaService.reserve(productId, amount);
-    }
-
-    @PATCH
-    @Path("/saga/release/{productId}/{amount}")
-    @RolesAllowed({SAGA_ORCHESTRATOR})
-    public void release(@PathParam("productId") UUID productId, @PathParam("amount") int amount) {
-        inventorySagaService.release(productId, amount);
-    }
-
 }

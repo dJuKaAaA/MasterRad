@@ -1,4 +1,4 @@
-package org.ftn.service.test2;
+package org.ftn.service;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,8 +17,9 @@ import org.ftn.entity.PaymentEntity;
 import org.ftn.entity.WalletEntity;
 import org.ftn.repository.PaymentRepository;
 import org.ftn.repository.WalletRepository;
-import org.ftn.service.impl.PaymentSagaServiceImpl;
 import org.ftn.util.KafkaTestResource;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -37,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @QuarkusTestResource(KafkaTestResource.class)
 public class PaymentSagaServiceTest {
     @Inject
-    PaymentSagaServiceImpl paymentSagaService;
+    PaymentSagaService paymentSagaService;
     @Inject
     PaymentRepository paymentRepository;
     @Inject
@@ -47,6 +48,13 @@ public class PaymentSagaServiceTest {
     @Inject
     @Any
     InMemoryConnector connector;
+    @Inject
+    PaymentDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     private UUID getUserId() {
         return UUID.fromString("8cca7a29-5add-4197-ad56-48be327ea13c");

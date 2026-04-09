@@ -1,4 +1,4 @@
-package org.ftn.service.test2;
+package org.ftn.service;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -13,8 +13,9 @@ import org.ftn.constant.OrderStatus;
 import org.ftn.dto.*;
 import org.ftn.entity.OrderEntity;
 import org.ftn.repository.OrderRepository;
-import org.ftn.service.OrderSagaService;
 import org.ftn.util.KafkaTestResource;
+import org.ftn.util.OrderDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -39,6 +40,13 @@ public class OrderSagaServiceTest {
     @Inject
     @Any
     InMemoryConnector connector;
+    @Inject
+    OrderDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @Test
     public void testCreateOrder_Success() {

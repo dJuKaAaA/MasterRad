@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/*
+KEYCLOAK CONTAINER MUST BE MANUALLY TURNED ON, ON http:/localhost:9000 AND MUST CONTAIN THE USER WITH THE RIGHT ID
+ */
 @QuarkusTest
 @QuarkusTestResource(WebShopServicesTestContainersManager.class)
 @QuarkusTestResource(IdentityProviderTestContainer.class)
@@ -35,7 +38,7 @@ public class TCCE2ETest {
         CoordinatorTransactionDto startedTx = coordinatorService.createTransaction(request, userId);
 
         await()
-                .atMost(10, TimeUnit.MINUTES)
+                .atMost(1, TimeUnit.MINUTES)
                 .pollInterval(2, TimeUnit.SECONDS)
                 .until(() -> {
                     CoordinatorTransactionDto tx = coordinatorService.getTransaction(startedTx.id());

@@ -1,4 +1,4 @@
-package org.ftn.service.test1;
+package org.ftn.service;
 
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -6,7 +6,8 @@ import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.PageResponse;
 import org.ftn.dto.PaymentResponseDto;
-import org.ftn.service.PaymentService;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -20,6 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class PaymentServiceTest {
     @Inject
     PaymentService paymentService;
+    @Inject
+    PaymentDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @ParameterizedTest
     @CsvSource({
