@@ -2,6 +2,18 @@ version: '3.8'
 
 services:
 
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy
+    container_name: 2pc-toxiproxy
+    ports:
+      - "8474:8474"   # management API — you call this from Windows
+      - "21001:21001" # order-db proxy
+      - "21002:21002" # inventory-db proxy
+      - "21003:21003" # payment-db proxy
+    volumes:
+      - ./toxiproxy-config.json:/config/toxiproxy.json
+    command: ["-host=0.0.0.0", "-config=/config/toxiproxy.json"]
+
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
     container_name: 2pc-keycloak
@@ -143,12 +155,15 @@ services:
       QUARKUS_DATASOURCE__ORDER__USERNAME: order
       QUARKUS_DATASOURCE__ORDER__PASSWORD: order
       QUARKUS_DATASOURCE__ORDER__JDBC_URL: jdbc:postgresql://order-db:5432/2pc_order
+      # QUARKUS_DATASOURCE__ORDER__JDBC_URL: jdbc:postgresql://toxiproxy:21001/2pc_order
       QUARKUS_DATASOURCE__INVENTORY__USERNAME: inventory
       QUARKUS_DATASOURCE__INVENTORY__PASSWORD: inventory
       QUARKUS_DATASOURCE__INVENTORY__JDBC_URL: jdbc:postgresql://inventory-db:5432/2pc_inventory
+      # QUARKUS_DATASOURCE__INVENTORY__JDBC_URL: jdbc:postgresql://toxiproxy:21002/2pc_inventory
       QUARKUS_DATASOURCE__PAYMENT__USERNAME: payment
       QUARKUS_DATASOURCE__PAYMENT__PASSWORD: payment
       QUARKUS_DATASOURCE__PAYMENT__JDBC_URL: jdbc:postgresql://payment-db:5432/2pc_payment
+      # QUARKUS_DATASOURCE__PAYMENT__JDBC_URL: jdbc:postgresql://toxiproxy:21003/2pc_payment
       QUARKUS_OIDC_TOKEN_ISSUER: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:9000/realms/distributed-transactions
       QUARKUS_OIDC_CLIENT_ID: web-store

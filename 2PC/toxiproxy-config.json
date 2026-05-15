@@ -1,0 +1,17 @@
+[
+    {
+        "name": "order-db",
+        "listen": "0.0.0.0:21001",
+        "upstream": "order-db:5432"
+    },
+    {
+        "name": "inventory-db",
+        "listen": "0.0.0.0:21002",
+        "upstream": "inventory-db:5432"
+    },
+    {
+        "name": "payment-db",
+        "listen": "0.0.0.0:21003",
+        "upstream": "payment-db:5432"
+    }
+]

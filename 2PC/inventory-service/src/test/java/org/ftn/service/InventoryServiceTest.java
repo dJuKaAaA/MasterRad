@@ -15,7 +15,9 @@ import org.ftn.dto.*;
 import org.ftn.entity.InventoryEntity;
 import org.ftn.entity.ProductEntity;
 import org.ftn.repository.InventoryRepository;
+import org.ftn.util.InventoryDataSeeder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -35,6 +37,13 @@ public class InventoryServiceTest {
     InventoryService inventoryService;
     @Inject
     InventoryRepository inventoryRepository;
+    @Inject
+    InventoryDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     private static Validator validator;
 
@@ -63,11 +72,11 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "0, 5, 0, 5, 1, 5",
-            "0, 10, 0, 5, 1, 5",
-            "1, 2, 1, 2, 3, 5",
-            "1, 3, 1, 2, 2, 5",
-            "2, 5, 2, 0, 1, 5"
+            "0, 5, 0, 5, 2, 6",
+            "0, 10, 0, 6, 1, 6",
+            "1, 2, 1, 2, 3, 6",
+            "1, 3, 1, 3, 2, 6",
+            "3, 5, 3, 0, 2, 6"
     })
     public void testGetAll(int page,
                            int size,
@@ -84,11 +93,11 @@ public class InventoryServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 5, 0, 5, 1, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 0, 10, 0, 5, 1, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 2, 1, 2, 3, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 1, 3, 1, 2, 2, 5",
-            "7e865ca7-a38e-4002-9569-fa6d01e9bdbf, 2, 5, 2, 0, 1, 5",
+            "055c925e-b2fc-49af-bcfc-07913e52c82f, 0, 6, 0, 6, 1, 6",
+            "055c925e-b2fc-49af-bcfc-07913e52c82f, 0, 10, 0, 6, 1, 6",
+            "055c925e-b2fc-49af-bcfc-07913e52c82f, 1, 2, 1, 2, 3, 6",
+            "055c925e-b2fc-49af-bcfc-07913e52c82f, 1, 3, 1, 3, 2, 6",
+            "055c925e-b2fc-49af-bcfc-07913e52c82f, 3, 5, 3, 0, 2, 6",
             "8cca7a29-5add-4197-ad56-43be327ea13d, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByMerchantId(UUID merchantId,
@@ -122,7 +131,7 @@ public class InventoryServiceTest {
     @Test
     public void testGetByIdAndMerchantId_Success() {
         UUID id = UUID.fromString("a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c13");
-        UUID merchantId = UUID.fromString("7e865ca7-a38e-4002-9569-fa6d01e9bdbf");
+        UUID merchantId = UUID.fromString("055c925e-b2fc-49af-bcfc-07913e52c82f");
         InventoryResponseDto inventory = inventoryService.get(id, merchantId);
         assertEquals(id, inventory.id());
         assertEquals(merchantId, inventory.product().merchantId());

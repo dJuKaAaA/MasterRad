@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record OrderRequestDto(UUID productId,
                               Integer quantity,
-                              UUID userId) {
+                              UUID userId,
+                              UUID coordinatorOrderId) {
 }

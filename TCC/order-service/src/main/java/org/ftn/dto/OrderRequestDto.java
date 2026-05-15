@@ -12,6 +12,7 @@ public record OrderRequestDto(
         @Min(value = 1, message = "Quantity must be at least 1")
         Integer quantity,
         @NotNull(message = "User id omitted")
-        UUID userId
+        UUID userId,
+        UUID coordinatorOrderId
 ) {
 }

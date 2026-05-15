@@ -2,6 +2,7 @@ package org.ftn.service.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
@@ -43,6 +44,7 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
 
         Optional<InventoryEntity> optionalInventory = inventoryRepository
                 .find("product.id", productId)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional();
         if (optionalInventory.isEmpty()) {
             LOG.errorf("Product %s not found", productId);
@@ -88,6 +90,7 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
         LOG.infof("Committing reservation for product %s", productId);
         InventoryEntity inventory = inventoryRepository
                 .find("product.id", productId)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional()
                 .orElseThrow(() -> {
                     LOG.errorf("Inventory with product %s not found while attempting commit", productId);
@@ -106,6 +109,7 @@ public class InventoryTCCServiceImpl implements InventoryTCCService {
     public void tccCancel(UUID productId, int amount) {
         Optional<InventoryEntity> optionalInventory = inventoryRepository
                 .find("product.id", productId)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional();
 
         if (optionalInventory.isPresent()) {

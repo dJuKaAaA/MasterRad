@@ -24,6 +24,7 @@ public class CoordinatorTransactionMapperImpl implements CoordinatorTransactionM
                 entity.getDecision(),
                 entity.getCreatedAt(),
                 entity.getAbortReason(),
+                entity.getStateWhenFailed(),
                 entity.isCompleted(),
                 participantDataMapper.toDto(entity.getParticipantData())
         );

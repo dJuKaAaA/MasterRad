@@ -21,6 +21,7 @@ public class PaymentMapperImpl implements PaymentMapper {
         entity.setProductQuantity(dto.productQuantity());
         entity.setStatus(PaymentStatus.PENDING);
         entity.setTotalPrice(entity.getPrice().multiply(new BigDecimal(entity.getProductQuantity())));
+        entity.setCoordinatorPaymentId(dto.coordinatorPaymentId());
         return entity;
     }
 

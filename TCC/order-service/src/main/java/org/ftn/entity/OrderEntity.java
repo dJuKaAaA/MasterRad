@@ -16,6 +16,7 @@ public class OrderEntity {
     private UUID userId;
     private Instant createdAt;
     private OrderStatus status;
+    private UUID coordinatorOrderId;
 
     @Id
     @GeneratedValue
@@ -47,6 +48,11 @@ public class OrderEntity {
         return status;
     }
 
+    @Column(name = "coordinator_order_id", unique = true)
+    public UUID getCoordinatorOrderId() {
+        return coordinatorOrderId;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -69,5 +75,9 @@ public class OrderEntity {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public void setCoordinatorOrderId(UUID coordinatorOrderId) {
+        this.coordinatorOrderId = coordinatorOrderId;
     }
 }

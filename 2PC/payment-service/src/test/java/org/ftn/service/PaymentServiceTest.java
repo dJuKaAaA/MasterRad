@@ -6,6 +6,8 @@ import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.PageResponse;
 import org.ftn.dto.PaymentResponseDto;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -19,6 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class PaymentServiceTest {
     @Inject
     PaymentService paymentService;
+    @Inject
+    PaymentDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -43,11 +52,11 @@ public class PaymentServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 0, 5, 0, 5, 1, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 0, 10, 0, 5, 1, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 1, 2, 1, 2, 3, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 1, 3, 1, 2, 2, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 2, 5, 2, 0, 1, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 0, 5, 0, 5, 1, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 0, 10, 0, 5, 1, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 1, 2, 1, 2, 3, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 1, 3, 1, 2, 2, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 2, 5, 2, 0, 1, 5",
             "8cca7a29-5add-ffff-ad56-43be327ea13d, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByUserId(UUID merchantId,
@@ -79,9 +88,9 @@ public class PaymentServiceTest {
     }
 
     @Test
-    public void testGetByIdAndMerchantId_Success() {
+    public void testGetByIdAndUserId_Success() {
         UUID id = UUID.fromString("e3b2c1d4-7f5a-4c3b-8d1e-9b2c3a4f5d60");
-        UUID userId = UUID.fromString("8cca7a29-5add-4197-ad56-48be327ea13c");
+        UUID userId = UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
         PaymentResponseDto payment = paymentService.get(id, userId);
         assertEquals(id, payment.id());
         assertEquals(userId, payment.userId());

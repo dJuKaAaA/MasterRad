@@ -24,7 +24,7 @@ INSERT INTO inventory_entity (
 ) VALUES (
              'a3c1d2f5-4e6b-4b3f-9a2c-1e7d3f6b8c10',
              'd572df76-b527-4e31-8aa3-9aa954d17100',
-             100,
+             1000000,
              '2024-05-15T16:22:00Z',
              '2024-05-15T16:22:00Z'
          );

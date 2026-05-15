@@ -1,5 +1,6 @@
 package org.ftn.service.impl;
 
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -79,12 +80,14 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         executor.runAsync(() -> {
             try {
                 executeTransaction(tx.id());
-            } catch (WebApplicationException e) {
-                setTxAbort(tx.id(), e.getResponse().readEntity(String.class));
+            } catch (Exception e) {
+                if (e instanceof WebApplicationException webApplicationException) {
+                    setTxAbort(tx.id(), webApplicationException.getResponse().readEntity(String.class));
+                } else {
+                    setTxAbort(tx.id(), "Connection error or other error occurred");
+                }
                 LOG.errorf("Aborting transaction %s", tx.id());
                 executeRollback(tx.id());
-            } catch (Exception e) {
-                LOG.errorf("Something went wrong: %s", e.getMessage());
             }
         });
 
@@ -100,6 +103,14 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                 .orElseThrow(() -> new NotFoundException("Coordinator transaction entity not found"));
     }
 
+    @Override
+    public CoordinatorTransactionState getState(UUID id) {
+        return coordinatorTransactionRepository
+            .findByIdOptional(id)
+            .orElseThrow(() -> new NotFoundException("Coordinator transaction entity not found"))
+            .getState();
+    }
+
     private void executeTransaction(UUID txId) {
         setTxState(txId, CoordinatorTransactionState.PREPARING);
         LOG.infof("Preparing transaction %s", txId);
@@ -107,9 +118,21 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         tryTransaction(txId);
         setTxStateAndDecision(txId, CoordinatorTransactionState.COMMITTING, Decision.COMMIT);
 
-        LOG.infof("Commiting transaction %s", txId);
-        commitTransaction(txId);
-        LOG.infof("Commit actions completed for transaction %s", txId);
+        try {
+            LOG.infof("Commiting transaction %s", txId);
+            commitTransaction(txId);
+            LOG.infof("Commit actions completed for transaction %s", txId);
+        } catch (Exception e) {
+            CoordinatorTransactionEntity tx = getById(txId);
+            if (e instanceof WebApplicationException webApplicationException) {
+                setTxAbort(tx.getId(), webApplicationException.getResponse().readEntity(String.class));
+            } else {
+                setTxAbort(tx.getId(), "Connection error or other error occurred");
+            }
+            LOG.errorf("Aborting transaction %s", tx.getId());
+            executeRollback(tx.getId());
+            return;
+        }
 
         setTxCompleted(txId, true);
         LOG.infof("Transaction %s successfully commited", txId);
@@ -117,79 +140,96 @@ public class CoordinatorServiceImpl implements CoordinatorService {
 
     // setter methods
     // --------------
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public CoordinatorTransactionDto createTx(CreateOrderRequestDto requestBody, UUID userId) {
-        CoordinatorTransactionEntity tx = new CoordinatorTransactionEntity(
-                null,
-                CoordinatorTransactionState.STARTED,
-                null,
-                Instant.now(),
-                false
-        );
+    private CoordinatorTransactionDto createTx(CreateOrderRequestDto requestBody, UUID userId) {
+        return QuarkusTransaction.requiringNew().call(() -> {
+            CoordinatorTransactionEntity tx = new CoordinatorTransactionEntity(
+                    null,
+                    CoordinatorTransactionState.STARTED,
+                    null,
+                    Instant.now(),
+                    false
+            );
 
-        tx.getParticipantData().setAmount(requestBody.amount());
-        tx.getParticipantData().setProductId(requestBody.productId());
-        tx.getParticipantData().setUserId(userId);
-        coordinatorTransactionRepository.persist(tx);
+            tx.getParticipantData().setAmount(requestBody.amount());
+            tx.getParticipantData().setProductId(requestBody.productId());
+            tx.getParticipantData().setUserId(userId);
+            tx.getParticipantData().setOrderId(UUID.randomUUID());
+            tx.getParticipantData().setPaymentId(UUID.randomUUID());
+            coordinatorTransactionRepository.persist(tx);
 
-        return coordinatorTransactionMapper.toDto(tx);
+            return coordinatorTransactionMapper.toDto(tx);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxState(UUID txId, CoordinatorTransactionState state) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(state);
+    private void setTxState(UUID txId, CoordinatorTransactionState state) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(state);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxStateAndDecision(UUID txId, CoordinatorTransactionState state, Decision decision) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(state);
-        tx.setDecision(decision);
+    private void setTxStateAndDecision(UUID txId, CoordinatorTransactionState state, Decision decision) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(state);
+            tx.setDecision(decision);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxAbort(UUID txId, String reason) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(CoordinatorTransactionState.ABORTING);
-        tx.setDecision(Decision.ABORT);
-        tx.setAbortReason(reason);
+    private void setTxAbort(UUID txId, String reason) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setStateWhenFailed(tx.getState());
+            tx.setState(CoordinatorTransactionState.ABORTING);
+            tx.setDecision(Decision.ABORT);
+            tx.setAbortReason(reason);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxCompleted(UUID txId, boolean success) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(success ? CoordinatorTransactionState.COMMITTED : CoordinatorTransactionState.ABORTED);
-        tx.setCompleted(true);
+    private void setTxCompleted(UUID txId, boolean success) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(success ? CoordinatorTransactionState.COMMITTED : CoordinatorTransactionState.ABORTED);
+            tx.setCompleted(true);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxOrderData(UUID txId, UUID orderId) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(CoordinatorTransactionState.ORDER_SERVICE_TRY);
-        tx.getParticipantData().setOrderId(orderId);
+    private void setTxOrderData(UUID txId, UUID orderId) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(CoordinatorTransactionState.ORDER_SERVICE_TRY);
+            tx.getParticipantData().setOrderId(orderId);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxInventoryData(UUID txId, BigDecimal price) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(CoordinatorTransactionState.INVENTORY_SERVICE_TRY);
-        tx.getParticipantData().setPrice(price);
+    private void setTxInventoryData(UUID txId, BigDecimal price) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(CoordinatorTransactionState.INVENTORY_SERVICE_TRY);
+            tx.getParticipantData().setPrice(price);
+        });
     }
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void setTxPaymentData(UUID txId, UUID paymentId) {
-        CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
-        tx.setState(CoordinatorTransactionState.PAYMENT_SERVICE_TRY);
-        tx.getParticipantData().setPaymentId(paymentId);
+    private void setTxPaymentData(UUID txId, UUID paymentId) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = coordinatorTransactionRepository.findById(txId);
+            tx.setState(CoordinatorTransactionState.PAYMENT_SERVICE_TRY);
+            tx.getParticipantData().setPaymentId(paymentId);
+        });
+    }
+
+    private void setAbortReason(UUID txId, String reason) {
+        QuarkusTransaction.requiringNew().run(() -> {
+            CoordinatorTransactionEntity tx = getById(txId);
+            tx.setAbortReason(reason);
+        });
     }
     // --------------
 
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public CoordinatorTransactionEntity getById(UUID id) {
-        return coordinatorTransactionRepository
+    private CoordinatorTransactionEntity getById(UUID id) {
+        return QuarkusTransaction.requiringNew().call(() -> coordinatorTransactionRepository
                 .findByIdOptional(id)
-                .orElseThrow(() -> new NotFoundException("Coordinator transaction entity not found"));
+                .orElseThrow(() -> new NotFoundException("Coordinator transaction entity not found")));
     }
 
     private void executeRollback(UUID txId) {
@@ -197,7 +237,7 @@ public class CoordinatorServiceImpl implements CoordinatorService {
         try {
             cancelTransaction(txId);
             setTxState(txId, CoordinatorTransactionState.ABORTED);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             CoordinatorTransactionEntity tx = getById(txId);
             switch (tx.getDecision()) {
                 case COMMIT:
@@ -209,6 +249,8 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                     setTxState(txId, CoordinatorTransactionState.ROLLBACK_FAILURE);
                     break;
             }
+            setAbortReason(txId, e.getMessage());
+            return;
         }
         LOG.infof("Rollback actions completed for transaction %s", txId);
 
@@ -227,12 +269,14 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                 if (tx.getState().ordinal() < CoordinatorTransactionState.COMMITTED.ordinal()) {
                     try {
                         commitTransaction(tx.getId());
-                    } catch (WebApplicationException e) {
-                        setTxAbort(tx.getId(), e.getResponse().readEntity(String.class));
+                    } catch (Exception e) {
+                        if (e instanceof WebApplicationException webApplicationException) {
+                            setTxAbort(tx.getId(), webApplicationException.getResponse().readEntity(String.class));
+                        } else {
+                            setTxAbort(tx.getId(), "Connection error or other error occurred");
+                        }
                         LOG.errorf("Aborting transaction %s", tx.getId());
                         executeRollback(tx.getId());
-                    } catch (Exception e) {
-                        LOG.errorf("Something went wrong: %s", e.getMessage());
                     }
                 }
                 break;
@@ -253,7 +297,8 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                     new OrderRequestDto(
                             tx.getParticipantData().getProductId(),
                             tx.getParticipantData().getAmount(),
-                            tx.getParticipantData().getUserId()
+                            tx.getParticipantData().getUserId(),
+                            tx.getParticipantData().getOrderId()
                     ),
                     tokenProvider.getAccessToken()
             );
@@ -277,12 +322,14 @@ public class CoordinatorServiceImpl implements CoordinatorService {
                             tx.getParticipantData().getPrice(),
                             tx.getParticipantData().getProductId(),
                             tx.getParticipantData().getAmount(),
-                            tx.getParticipantData().getUserId()
+                            tx.getParticipantData().getUserId(),
+                            tx.getParticipantData().getPaymentId()
                     ),
                     tokenProvider.getAccessToken()
             );
             setTxPaymentData(txId, paymentResponseDto.id());
             LOG.infof("Payment prepared for transaction %s", tx.getId());
+            tx = getById(txId);
         }
     }
 
@@ -306,27 +353,40 @@ public class CoordinatorServiceImpl implements CoordinatorService {
     private void cancelTransaction(UUID txId) {
         CoordinatorTransactionEntity tx = getById(txId);
 
-        if (tx.getState().ordinal() < CoordinatorTransactionState.PAYMENT_SERVICE_CANCEL.ordinal()) {
+//        if (tx.getState().ordinal() < CoordinatorTransactionState.PAYMENT_SERVICE_CANCEL.ordinal() &&
+//                tx.getStateWhenFailed().ordinal() >= CoordinatorTransactionState.PAYMENT_SERVICE_TRY.ordinal()) {
+        if (tx.getParticipantData().getPaymentId() != null) {
+            LOG.info("Starting payment cancel...");
             paymentClient.tccCancel(
                     tx.getParticipantData().getPaymentId(),
                     tokenProvider.getAccessToken()
             );
             setTxState(txId, CoordinatorTransactionState.PAYMENT_SERVICE_CANCEL);
+            tx.setState(CoordinatorTransactionState.PAYMENT_SERVICE_CANCEL);
+            LOG.info("Cancelled payment");
         }
-        if (tx.getState().ordinal() < CoordinatorTransactionState.INVENTORY_SERVICE_CANCEL.ordinal()) {
+        if (tx.getState().ordinal() < CoordinatorTransactionState.INVENTORY_SERVICE_CANCEL.ordinal() &&
+                tx.getStateWhenFailed().ordinal() >= CoordinatorTransactionState.INVENTORY_SERVICE_TRY.ordinal()) {
+            LOG.info("Starting inventory reservation cancel...");
             inventoryClient.tccCancel(
                     tx.getParticipantData().getProductId(),
                     tx.getParticipantData().getAmount(),
                     tokenProvider.getAccessToken()
             );
             setTxState(txId, CoordinatorTransactionState.INVENTORY_SERVICE_CANCEL);
+            tx.setState(CoordinatorTransactionState.INVENTORY_SERVICE_CANCEL);
+            LOG.info("Cancelled inventory reservation");
         }
-        if (tx.getState().ordinal() < CoordinatorTransactionState.ORDER_SERVICE_CANCEL.ordinal()) {
+//        if (tx.getState().ordinal() < CoordinatorTransactionState.ORDER_SERVICE_CANCEL.ordinal() &&
+//                tx.getStateWhenFailed().ordinal() >= CoordinatorTransactionState.ORDER_SERVICE_TRY.ordinal()) {
+        if (tx.getParticipantData().getOrderId() != null) {
+            LOG.info("Starting order cancel...");
             orderClient.tccCancel(
                     tx.getParticipantData().getOrderId(),
                     tokenProvider.getAccessToken()
             );
             setTxState(txId, CoordinatorTransactionState.ORDER_SERVICE_CANCEL);
+            LOG.info("Cancelled order");
         }
     }
 }

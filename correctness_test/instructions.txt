@@ -1,0 +1,17 @@
+# ── SAGA ──────────────────────────────────────────────
+docker compose -f docker-compose-saga.yml up -d
+# wait ~30s
+py correctness_test.py --protocol saga
+docker compose -f docker-compose-saga.yml down
+
+# ── TCC ───────────────────────────────────────────────
+docker compose -f docker-compose-tcc.yml up -d
+# wait ~30s
+py correctness_test.py --protocol tcc
+docker compose -f docker-compose-tcc.yml down
+
+# ── 2PC ───────────────────────────────────────────────
+docker compose -f docker-compose-2pc.yml up -d
+# wait ~30s
+py correctness_test.py --protocol 2pc
+docker compose -f docker-compose-2pc.yml down

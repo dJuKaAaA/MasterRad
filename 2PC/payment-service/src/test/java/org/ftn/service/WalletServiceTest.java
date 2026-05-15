@@ -8,7 +8,9 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.dto.WalletResponseDto;
 import org.ftn.entity.WalletEntity;
 import org.ftn.repository.WalletRepository;
+import org.ftn.util.PaymentDataSeeder;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -23,13 +25,20 @@ public class WalletServiceTest {
     WalletService walletService;
     @Inject
     WalletRepository walletRepository;
+    @Inject
+    PaymentDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     private UUID getDummyUserId() {
         return UUID.fromString("ffff7a2b-5add-4197-ad56-48be327ea13c");
     }
 
     private UUID getExistingUserId() {
-        return UUID.fromString("8cca7a29-5add-4197-ad56-48be327ea13c");
+        return UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
     }
 
     @Transactional

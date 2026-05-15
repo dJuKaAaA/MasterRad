@@ -9,6 +9,8 @@ import org.ftn.inventory.dto.InventoryResponseDto;
 import org.ftn.inventory.entity.InventoryEntity;
 import org.ftn.inventory.repository.InventoryRepository;
 import org.ftn.inventory.service.InventoryService;
+import org.ftn.util.InventoryDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,6 +26,13 @@ public class InventoryServiceTest {
     @DataSource("inventory")
     @Inject
     InventoryRepository inventoryRepository;
+    @Inject
+    InventoryDataSeeder inventoryDataSeeder;
+
+    @BeforeEach
+    public void setup() {
+        inventoryDataSeeder.seed();
+    }
 
     @Test
     public void testReserve_Success() {

@@ -2,6 +2,7 @@ package org.ftn.service.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
@@ -30,7 +31,8 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
     private static final Logger LOG = Logger.getLogger(PaymentTCCServiceImpl.class);
 
     @Inject
-    public PaymentTCCServiceImpl(PaymentRepository paymentRepository, PaymentMapper paymentMapper, WalletRepository walletRepository) {
+    public PaymentTCCServiceImpl(PaymentRepository paymentRepository, PaymentMapper paymentMapper,
+                                 WalletRepository walletRepository) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.walletRepository = walletRepository;
@@ -42,6 +44,7 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
         LOG.info("Creating payment");
         Optional<WalletEntity> optionalWallet = walletRepository
                 .find("userId", dto.userId())
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional();
         if (optionalWallet.isEmpty()) {
             LOG.errorf("Wallet for user % not found");
@@ -58,6 +61,7 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
 
         payment.setPayer(wallet);
         payment.setStatus(PaymentStatus.PENDING);
+        payment.getPayer().pay(payment.getTotalPrice());
 
         paymentRepository.persist(payment);
 
@@ -77,7 +81,10 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
                     return new ServerErrorException("Payment not found while attempting commit", 500);
                 });
 
-        payment.getPayer().pay(payment.getTotalPrice());
+        walletRepository.find("id", payment.getPayer().getId())
+                        .withLock(LockModeType.PESSIMISTIC_WRITE)
+                        .firstResult();
+
         payment.setPayedAt(Instant.now());
         payment.setStatus(PaymentStatus.SUCCESS);
 
@@ -88,11 +95,18 @@ public class PaymentTCCServiceImpl implements PaymentTCCService {
     @Override
     public void tccCancel(UUID id) {
         Optional<PaymentEntity> optionalPayment = paymentRepository
-                .findByIdOptional(id);
+                .find("id = ?1 or coordinatorPaymentId = ?1", id)
+                .firstResultOptional();
 
         if (optionalPayment.isPresent()) {
             LOG.infof("Rolling back payment %s", id);
             PaymentEntity payment = optionalPayment.get();
+
+            walletRepository.find("id", payment.getPayer().getId())
+                            .withLock(LockModeType.PESSIMISTIC_WRITE)
+                            .firstResult();
+
+            payment.getPayer().refund(payment.getTotalPrice());
 
             payment.setStatus(PaymentStatus.FAILED);
             LOG.infof("Successful rollback for payment %s", payment.getId());

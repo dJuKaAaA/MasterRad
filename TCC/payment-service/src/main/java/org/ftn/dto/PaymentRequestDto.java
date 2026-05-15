@@ -16,6 +16,7 @@ public record PaymentRequestDto(
         @Min(value = 1, message = "Product quantity must be at least 1")
         Integer productQuantity,
         @NotNull(message = "User id omitted")
-        UUID userId
+        UUID userId,
+        UUID coordinatorPaymentId
 ) {
 }

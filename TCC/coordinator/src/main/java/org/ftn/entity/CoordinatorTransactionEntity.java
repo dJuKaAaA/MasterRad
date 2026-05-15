@@ -16,6 +16,7 @@ public class CoordinatorTransactionEntity {
     private Decision decision;
     private Instant createdAt;
     private ParticipantDataEntity participantData;
+    private CoordinatorTransactionState stateWhenFailed;
     private String abortReason;
     private boolean completed;
 
@@ -59,6 +60,12 @@ public class CoordinatorTransactionEntity {
         return participantData;
     }
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state_when_failed")
+    public CoordinatorTransactionState getStateWhenFailed() {
+        return stateWhenFailed;
+    }
+
     @Column(name = "abort_reason")
     public String getAbortReason() {
         return abortReason;
@@ -86,6 +93,10 @@ public class CoordinatorTransactionEntity {
 
     public void setParticipantData(ParticipantDataEntity participantData) {
         this.participantData = participantData;
+    }
+
+    public void setStateWhenFailed(CoordinatorTransactionState stateWhenFailed) {
+        this.stateWhenFailed = stateWhenFailed;
     }
 
     public void setAbortReason(String abortReason) {

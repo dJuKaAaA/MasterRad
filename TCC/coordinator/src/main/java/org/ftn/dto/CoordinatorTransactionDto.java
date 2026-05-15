@@ -11,6 +11,7 @@ public record CoordinatorTransactionDto(UUID id,
                                         Decision decision,
                                         Instant createdAt,
                                         String abortReason,
+                                        CoordinatorTransactionState stateWhenFailed,
                                         boolean completed,
                                         ParticipantDataDto participantData) {
 }

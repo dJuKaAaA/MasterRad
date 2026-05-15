@@ -3,12 +3,12 @@ package org.ftn.resource;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import net.bytebuddy.implementation.bind.annotation.Default;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.ftn.constant.CoordinatorTransactionState;
+import org.ftn.dto.CoordinatorTransactionDto;
 import org.ftn.dto.CreateOrderRequestDto;
 import org.ftn.service.CoordinatorService;
 import org.jboss.resteasy.reactive.ResponseStatus;
@@ -34,10 +34,21 @@ public class CoordinatorResource {
     @ResponseStatus(202)
     @RolesAllowed({CUSTOMER})
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createOrder(@Valid CreateOrderRequestDto body) {
-        coordinatorService.createTransaction(body, UUID.fromString(jwt.getSubject()));
+    public CoordinatorTransactionDto createOrder(@Valid CreateOrderRequestDto body) {
+        return coordinatorService.createTransaction(body, UUID.fromString(jwt.getSubject()));
     }
 
-    // TODO: Make a cancel order endpoint and functionality
-    // This can be mentioned in "Future work" part of the thesis
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public CoordinatorTransactionDto getTransaction(@PathParam("id") UUID id) {
+        return coordinatorService.getTransaction(id);
+    }
+
+    @GET
+    @Path("{id}/state")
+    @Produces(MediaType.APPLICATION_JSON)
+    public CoordinatorTransactionState getState(@PathParam("id") UUID id) {
+        return coordinatorService.getState(id);
+    }
 }

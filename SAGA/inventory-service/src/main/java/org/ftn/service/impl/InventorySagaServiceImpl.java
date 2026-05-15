@@ -3,6 +3,7 @@ package org.ftn.service.impl;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
@@ -57,6 +58,7 @@ public class InventorySagaServiceImpl implements InventorySagaService {
 
         InventoryEntity inventory = inventoryRepository
                 .find("product.id", productId)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional()
                 .orElseThrow(() -> {
                     LOG.errorf("Inventory with product %s not found", productId);
@@ -90,6 +92,7 @@ public class InventorySagaServiceImpl implements InventorySagaService {
     public void release(UUID productId, int amount) {
         Optional<InventoryEntity> optionalInventory = inventoryRepository
                 .find("product.id", productId)
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional();
         if (optionalInventory.isPresent()) {
             LOG.infof("Releasing product %s", productId);

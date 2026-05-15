@@ -11,6 +11,8 @@ import org.ftn.order.dto.OrderResponseDto;
 import org.ftn.order.entity.OrderEntity;
 import org.ftn.order.repository.OrderRepository;
 import org.ftn.order.service.OrderService;
+import org.ftn.util.OrderDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,6 +32,13 @@ public class OrderServiceTest {
     OrderRepository orderRepository;
     @Inject
     Validator validator;
+    @Inject
+    OrderDataSeeder orderDataSeeder;
+
+    @BeforeEach
+    public void setup() {
+        orderDataSeeder.seed();
+    }
 
     @Test
     public void testCreateOrder_Success() {

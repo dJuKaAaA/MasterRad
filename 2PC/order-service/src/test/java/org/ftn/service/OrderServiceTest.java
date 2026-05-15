@@ -1,5 +1,6 @@
 package org.ftn.service;
 
+import io.quarkus.logging.Log;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
@@ -7,6 +8,8 @@ import jakarta.ws.rs.NotFoundException;
 import org.ftn.constant.OrderStatus;
 import org.ftn.dto.OrderResponseDto;
 import org.ftn.dto.PageResponse;
+import org.ftn.util.OrderDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -20,6 +23,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class OrderServiceTest {
     @Inject
     OrderService orderService;
+    @Inject
+    OrderDataSeeder seeder;
+
+    @BeforeEach
+    public void setup() {
+        seeder.seed();
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -83,7 +93,7 @@ public class OrderServiceTest {
     @Test
     public void testGetByIdAndUserId_Success() {
         UUID id = UUID.fromString("03b229a1-0529-4a4a-a920-a7dda2637f70");
-        UUID userId = UUID.fromString("8cca7a29-5add-4197-ad56-48be327ea13c");
+        UUID userId = UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");
         OrderResponseDto order = orderService.get(id, userId);
         assertEquals(id, order.id());
         assertEquals(userId, order.userId());
@@ -110,12 +120,12 @@ public class OrderServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 0, 5, 0, 5, 1, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 0, 10, 0, 5, 1, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 1, 2, 1, 2, 3, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 1, 3, 1, 2, 2, 5",
-            "8cca7a29-5add-4197-ad56-48be327ea13c, 2, 5, 2, 0, 1, 5",
-            "8cca7a29-5add-4197-ad56-43be327ea13c, 0, 5, 0, 0, 1, 0"
+            "daa45fd6-3500-4a0d-914d-052082303122, 0, 5, 0, 5, 1, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 0, 10, 0, 5, 1, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 1, 2, 1, 2, 3, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 1, 3, 1, 2, 2, 5",
+            "daa45fd6-3500-4a0d-914d-052082303122, 2, 5, 2, 0, 1, 5",
+            "eaa45fd6-3500-4a0d-914d-052082303122, 0, 5, 0, 0, 1, 0"
     })
     public void testGetAllByUserId(UUID userId,
                                    int page,

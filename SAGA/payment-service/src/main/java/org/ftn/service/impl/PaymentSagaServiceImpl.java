@@ -4,6 +4,7 @@ import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
@@ -57,6 +58,7 @@ public class PaymentSagaServiceImpl implements PaymentSagaService {
         LOG.info("Processing payment");
         WalletEntity wallet = walletRepository
                 .find("userId", dto.userId())
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional()
                 .orElseThrow(() -> {
                     LOG.errorf("Wallet for user %s not found", dto.userId());
@@ -86,6 +88,12 @@ public class PaymentSagaServiceImpl implements PaymentSagaService {
         if (optionalPayment.isPresent()) {
             Log.infof("Refunding payment %s", id);
             PaymentEntity payment = optionalPayment.get();
+
+            walletRepository
+                    .find("userId", payment.getPayer().getUserId())
+                    .withLock(LockModeType.PESSIMISTIC_WRITE)
+                    .firstResult();
+
             payment.getPayer().refund(payment.getTotalPrice());
             payment.setStatus(PaymentStatus.REFUNDED);
             Log.infof("Successfully refunded payment %s", payment.getId());

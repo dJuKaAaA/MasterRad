@@ -21,6 +21,10 @@ import org.ftn.payment.repository.WalletRepository;
 import org.ftn.repository.CheckoutErrorRepository;
 import org.ftn.service.CheckoutErrorService;
 import org.ftn.service.CoordinatorService;
+import org.ftn.util.InventoryDataSeeder;
+import org.ftn.util.OrderDataSeeder;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -58,6 +62,21 @@ public class CheckoutTest {
 
     @Inject
     ManagedExecutor executor;
+
+    @Inject
+    OrderDataSeeder orderDataSeeder;
+    @Inject
+    InventoryDataSeeder inventoryDataSeeder;
+    @Inject
+    PaymentDataSeeder paymentDataSeeder;
+
+    @Transactional
+    @BeforeEach
+    public void setup() {
+        orderDataSeeder.seed();
+        inventoryDataSeeder.seed();
+        paymentDataSeeder.seed();
+    }
 
     /*
     MOCKS HOW THE CHECKOUT ENDPOINT WORKS SO I CAN JUST TEST THE METHOD AND NOT THE ENDPOINT (because there are complications with testing the JsonWebToken)

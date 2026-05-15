@@ -4,6 +4,7 @@ import io.quarkus.agroal.DataSource;
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
@@ -45,6 +46,7 @@ public class PaymentServiceImpl implements PaymentService {
         LOG.info("Processing payment");
         WalletEntity wallet = walletRepository
                 .find("userId", dto.userId())
+                .withLock(LockModeType.PESSIMISTIC_WRITE)
                 .firstResultOptional()
                 .orElseThrow(() -> {
                     LOG.errorf("Wallet for user % not found");
@@ -74,6 +76,12 @@ public class PaymentServiceImpl implements PaymentService {
         if (optionalPayment.isPresent()) {
             Log.infof("Refunding payment %s", id);
             PaymentEntity payment = optionalPayment.get();
+
+            walletRepository
+                    .find("userId", payment.getPayer().getUserId())
+                    .withLock(LockModeType.PESSIMISTIC_WRITE)
+                    .firstResult();
+
             payment.getPayer().refund(payment.getTotalPrice());
             payment.setStatus(PaymentStatus.REFUNDED);
             paymentRepository.persist(payment);

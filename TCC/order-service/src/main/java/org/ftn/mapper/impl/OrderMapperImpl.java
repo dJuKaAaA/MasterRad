@@ -17,6 +17,7 @@ public class OrderMapperImpl implements OrderMapper {
         entity.setProductId(dto.productId());
         entity.setQuantity(dto.quantity());
         entity.setUserId(dto.userId());
+        entity.setCoordinatorOrderId(dto.coordinatorOrderId());
         return entity;
     }
 

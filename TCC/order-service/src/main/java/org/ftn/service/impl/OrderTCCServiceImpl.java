@@ -39,6 +39,7 @@ public class OrderTCCServiceImpl implements OrderTCCService {
         order.setUserId(dto.userId());
         order.setStatus(OrderStatus.PENDING);
         orderRepository.persist(order);
+
         LOG.infof("Order saved with id: %s", order.getId());
         return orderMapper.toDto(order);
     }
@@ -62,12 +63,16 @@ public class OrderTCCServiceImpl implements OrderTCCService {
     @Override
     public void tccCancel(UUID id) {
         Optional<OrderEntity> optionalOrder = orderRepository
-                .findByIdOptional(id);
+                .find("id = ?1 or coordinatorOrderId = ?1", id)
+                .firstResultOptional();
+
         if (optionalOrder.isPresent()) {
             LOG.infof("Rolling back order %s", id);
             OrderEntity order = optionalOrder.get();
             order.setStatus(OrderStatus.CANCELED);
             LOG.infof("Successful rollback for order %s", order.getId());
+        } else {
+            LOG.errorf("Could not find order with id %s", id);
         }
     }
 }

@@ -15,6 +15,8 @@ import org.ftn.payment.entity.WalletEntity;
 import org.ftn.payment.repository.PaymentRepository;
 import org.ftn.payment.repository.WalletRepository;
 import org.ftn.payment.service.PaymentService;
+import org.ftn.util.PaymentDataSeeder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -39,6 +41,13 @@ public class PaymentServiceTest {
     WalletRepository walletRepository;
     @Inject
     Validator validator;
+    @Inject
+    PaymentDataSeeder paymentDataSeeder;
+
+    @BeforeEach
+    public void setup() {
+        paymentDataSeeder.seed();
+    }
 
     private UUID getUserId() {
         return UUID.fromString("daa45fd6-3500-4a0d-914d-052082303122");

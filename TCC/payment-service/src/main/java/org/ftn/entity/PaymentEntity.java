@@ -19,6 +19,7 @@ public class PaymentEntity {
     private PaymentStatus status;
     private WalletEntity payer;
     private BigDecimal totalPrice;
+    private UUID coordinatorPaymentId;
 
     @Id
     @GeneratedValue
@@ -60,6 +61,11 @@ public class PaymentEntity {
         return this.totalPrice;
     }
 
+    @Column(name = "coordinator_payment_id", unique = true)
+    public UUID getCoordinatorPaymentId() {
+        return coordinatorPaymentId;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -90,6 +96,10 @@ public class PaymentEntity {
 
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public void setCoordinatorPaymentId(UUID coordinatorPaymentId) {
+        this.coordinatorPaymentId = coordinatorPaymentId;
     }
 
 }

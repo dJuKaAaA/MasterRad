@@ -30,7 +30,6 @@ public class TCCE2ETest {
 
     @Test
     public void testTCCTransaction_Success() {
-        UUID idempotencyKey = UUID.randomUUID();
         UUID productId = UUID.fromString("d572df76-b527-4e31-8aa3-9aa954d17100");
         UUID userId = UUID.fromString("19e5ddb1-4c66-4d17-ad06-e8a6af23ed58");
         int amount = 3;
@@ -47,6 +46,9 @@ public class TCCE2ETest {
                             || tx.state().equals(CoordinatorTransactionState.ABORTED);
                 });
 
+
+        CoordinatorTransactionDto tx = coordinatorService.getTransaction(startedTx.id());
+        System.out.println("MI BOMBO >>> Tx: " + tx);
         CoordinatorTransactionDto finishedTx = coordinatorService.getTransaction(startedTx.id());
         assertEquals(CoordinatorTransactionState.COMMITTED, finishedTx.state());
         assertEquals(Decision.COMMIT, finishedTx.decision());
@@ -54,7 +56,6 @@ public class TCCE2ETest {
 
     @Test
     public void testTCCTransaction_RollbackInventory() {
-        UUID idempotencyKey = UUID.randomUUID();
         UUID productId = UUID.fromString("d572df76-b527-4e31-bbbb-9aa954d17100");   // Non-existent product
         UUID userId = UUID.fromString("19e5ddb1-4c66-4d17-ad06-e8a6af23ed58");
         int amount = 3;
@@ -79,7 +80,6 @@ public class TCCE2ETest {
 
     @Test
     public void testTCCTransaction_RollbackPayment() {
-        UUID idempotencyKey = UUID.randomUUID();
         UUID productId = UUID.fromString("d572df76-b527-4e31-8aa3-9aa954d17104");
         UUID userId = UUID.fromString("19e5ddb1-4c66-4d17-ad06-e8a6af23ed58");
         int amount = 10;    // Insufficient balance
